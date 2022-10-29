@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Filmoteka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/1.1.0/modern-normalize.min.css"
+      integrity="sha512-wpPYUAdjBVSE4KJnH1VR1HeZfpl1ub8YT/NKx4PuQ5NmX2tKuGu6U/JRp5y+Y8XG2tV+wKQpNHVUX03MfMFn9Q=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="./css/main.min.css" />
+  </head>
+  <body>
+    <header class="header header__home">
+      <div class="header__container container">
+        <nav class="header__navigation">
+          <a href="#" class="header__logo link">
+            <svg class="header__logo_icon" width="24" height="24">
+              <use href="./img/sprite.svg#icon-film"></use>
+            </svg>
+            <h1 class="header__title">Filmoteka</h1>
+          </a>
+
+          <div class="header__buttons_wrapper">
+            <button class="header__btn current-button">HOME</button>
+            <button class="header__btn">MY LIBRARY</button>
+          </div>
+        </nav>
+        <div class="header__search_wrapper">
+          <form class="header__form">
+            <input type="text" class="header__input" placeholder="Movie search" />
+            <button type="submit" class="header__search">Search</button>
+          </form>
+
+          <span class="header__error"
+            >Search result not successful. Enter the correct movie name and try again</span
+          >
+        </div>
+        <div class="header__library_wrapper">
+          <button type="button" class="header__watched_button">WATCHED</button>
+          <button type="button" class="header__queue_button">QUEUE</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+        <ul class="films list">
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+          <li class="films__item">
+            <img src="./img/test-film.png" alt="movie cover" class="films__image" />
+            <h3 class="films__title">GREYHOUND</h3>
+            <p class="films__description">Drama, Action | 2020</p>
+          </li>
+        </ul>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__container">
+        <p class="footer__text">© 2020 | All Rights Reserved |</p>
+        <div class="footer__developers">
+          <span class="footer__text">Developed with</span>
+          <svg width="14" height="14">
+            <use href="./img/sprite.svg#icon-heart"></use>
+          </svg>
+          <span class="footer__text"
+            >by <a href="#" class="footer__studients footer__text">GoIT Students</a></span
+          >
+        </div>
+      </div>
+    </footer>
+
+    <script src="./js/index.js"></script>
+  </body>
+</html>
