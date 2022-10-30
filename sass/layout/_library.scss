@@ -1,5 +1,5 @@
-.films {
-  display: flex;
+.library {
+  display: none;
   flex-direction: column;
   align-items: center;
   gap: 20px;
@@ -7,22 +7,22 @@
   padding-bottom: 40px;
 }
 
-.films__image {
+.library__image {
   border-radius: 5px;
   width: 280px;
   height: 402px;
   object-fit: cover;
 }
 
-.flims__desc_wrapper {
+.library__desc_wrapper {
   width: 280px;
 }
 
-.films__item {
+.library__item {
   height: 454px;
 }
 
-.films__title {
+.library_title {
   color: #000000;
   font-weight: 500;
   font-size: 12px;
@@ -30,7 +30,7 @@
   margin-top: 10px;
 }
 
-.films__description {
+.library__description {
   color: #ff6b08;
   font-weight: 500;
   font-size: 12px;
@@ -38,7 +38,7 @@
 }
 
 @media screen and (min-width: 768px) {
-  .films {
+  .library {
     gap: 32px;
     flex-direction: row;
     justify-content: center;
@@ -47,57 +47,57 @@
     padding-bottom: 61px;
   }
 
-  .films__image {
+  .library__image {
     width: 336px;
     height: 455px;
   }
 
-  .flims__desc_wrapper {
+  .library__desc_wrapper {
     width: 336px;
   }
 
-  .films__item {
+  .library__item {
     height: 495px;
   }
 
-  .films__title {
+  .library__title {
     line-height: 16px;
     margin-top: 8px;
   }
 
-  .films__description {
+  .library__description {
     line-height: 16px;
   }
 }
 
 @media screen and (min-width: 1280px) {
-  .films {
+  .library {
     gap: 16px;
     padding-top: 56px;
     padding-bottom: 60px;
     justify-content: flex-start;
   }
 
-  .films__image {
+  .library__image {
     width: 394px;
     height: 574px;
   }
 
-  .flims__desc_wrapper {
+  .library__desc_wrapper {
     width: 394px;
   }
 
-  .films__item {
+  .library__item {
     height: 658px;
   }
 
-  .films__title {
+  .library__title {
     font-size: 20px;
     line-height: 24px;
     margin-top: 12px;
   }
 
-  .films__description {
+  .library__description {
     font-size: 20px;
     line-height: 24px;
   }
