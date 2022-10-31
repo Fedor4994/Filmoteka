@@ -82,8 +82,8 @@ function searchFilms(event) {
   if (event.target.classList.contains('header__search')) {
     inputValue = event.currentTarget.elements.query.value;
     renderFilms(inputValue);
+    event.currentTarget.reset();
   }
-  event.currentTarget.reset();
 }
 
 function renderFilms(value) {
