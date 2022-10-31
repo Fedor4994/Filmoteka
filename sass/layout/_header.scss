@@ -1,6 +1,6 @@
 .header__home {
   background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)),
-    url('/img/abstract-background-phone.png');
+    url('../img/abstract-background-phone.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -8,7 +8,7 @@
 
 .header__library {
   background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)),
-    url('/img/background-library-phone.png');
+    url('../img/background-library-phone.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -152,12 +152,12 @@
 @media screen and (min-width: 768px) {
   .header__home {
     background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)),
-      url('/img/abstract-background-laptop.png');
+      url('../img/abstract-background-laptop.png');
   }
 
   .header__library {
     background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)),
-      url('/img/background-library-laptop.png');
+      url('../img/background-library-laptop.png');
   }
 
   .header__navigation {
@@ -208,12 +208,12 @@
 @media screen and (min-width: 1280px) {
   .header__home {
     background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)),
-      url('/img/abstract-background-desktop.png');
+      url('../img/abstract-background-desktop.png');
   }
 
   .header__library {
     background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)),
-      url('/img/background-library-desktop.png');
+      url('../img/background-library-desktop.png');
   }
 
   .header__input {

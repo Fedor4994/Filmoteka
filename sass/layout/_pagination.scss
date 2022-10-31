@@ -44,3 +44,9 @@
   border-radius: 5px;
   color: #ffffff;
 }
+
+@media screen and (min-width: 768px) {
+  .pagination {
+    padding-bottom: 60px;
+  }
+}

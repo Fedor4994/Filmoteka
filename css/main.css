@@ -61,14 +61,14 @@ body {
   }
 }
 .header__home {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("/img/abstract-background-phone.png");
+  background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("../img/abstract-background-phone.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
 }
 
 .header__library {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("/img/background-library-phone.png");
+  background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("../img/background-library-phone.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -210,10 +210,10 @@ body {
 
 @media screen and (min-width: 768px) {
   .header__home {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)), url("/img/abstract-background-laptop.png");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)), url("../img/abstract-background-laptop.png");
   }
   .header__library {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("/img/background-library-laptop.png");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("../img/background-library-laptop.png");
   }
   .header__navigation {
     margin-bottom: 40px;
@@ -253,10 +253,10 @@ body {
 }
 @media screen and (min-width: 1280px) {
   .header__home {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)), url("/img/abstract-background-desktop.png");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)), url("../img/abstract-background-desktop.png");
   }
   .header__library {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("/img/background-library-desktop.png");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.56), rgba(0, 0, 0, 0.56)), url("../img/background-library-desktop.png");
   }
   .header__input {
     width: 430px;
@@ -511,6 +511,11 @@ body {
   color: #ffffff;
 }
 
+@media screen and (min-width: 768px) {
+  .pagination {
+    padding-bottom: 60px;
+  }
+}
 .footer {
   background-color: #f7f7f7;
   padding-top: 30px;

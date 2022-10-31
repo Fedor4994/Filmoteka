@@ -1,14 +1,18 @@
 const header = document.querySelector('.header');
 const headerLogo = document.querySelector('.header__logo');
+const headerErrorMessage = document.querySelector('.header__error');
 const headerNavigationButtons = document.querySelector('.header__buttons_wrapper');
 const headerHomePage = document.querySelector('.header__search_wrapper');
 const headerLibraryPage = document.querySelector('.header__library_wrapper');
 const filmsList = document.querySelector('.films');
 const libraryList = document.querySelector('.library');
 const paginationList = document.querySelector('.pagination');
+const searchForm = document.querySelector('.header__form');
 
+let inputValue = '';
 let genres = null;
 let page = 1;
+let totalFoundPages = null;
 
 async function getGenres() {
   const resolve = await fetch(
@@ -70,12 +74,80 @@ function renderPopularFilms() {
     });
 }
 
+searchForm.addEventListener('click', searchFilms);
+
+function searchFilms(event) {
+  event.preventDefault();
+  page = 1;
+  if (event.target.classList.contains('header__search')) {
+    inputValue = event.currentTarget.elements.query.value;
+    renderFilms(inputValue);
+  }
+  event.currentTarget.reset();
+}
+
+function renderFilms(value) {
+  getMovies(value, page)
+    .then(data => {
+      if (data.total_pages === 0) {
+        headerErrorMessage.classList.remove('is-hidden');
+        return;
+      }
+      headerErrorMessage.classList.add('is-hidden');
+      totalFoundPages = data.total_pages;
+      const foundFilms = data.results;
+      const murkup = foundFilms
+        .map(film => {
+          const arr = [];
+
+          film.genre_ids.forEach(id => {
+            genres.forEach(genre => {
+              if (genre.id === id) {
+                arr.push(genre.name);
+              }
+            });
+          });
+
+          return `
+          <li class="films__item">
+          <img src="https://image.tmdb.org/t/p/w500${
+            film.poster_path
+          }" alt="movie poster" class="films__image"/>
+          <div class="flims__desc_wrapper">
+          <h3 class="films__title">${film.title}</h3>
+          <p class="films__description">${arr.join(', ')} | ${film?.release_date?.slice(0, 4)}</p>
+          </div>
+          </li>
+          `;
+        })
+        .join('');
+
+      filmsList.innerHTML = murkup;
+      renderPagination(totalFoundPages, page);
+    })
+    .catch(err => {
+      console.log(err);
+    });
+}
+
+async function getMovies(movieName, page) {
+  const resolve = await fetch(
+    `https://api.themoviedb.org/3/search/movie?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d&query=${movieName}&page=${page}`
+  );
+  const data = resolve.json();
+  return data;
+}
+
 headerLogo.addEventListener('click', event => {
   event.preventDefault();
   // Находит кнопку с подчеркиванием, и снимвет его с нее, а после вешает на первый попавшийся header__btn, а тоесть на хоум пейдж
   headerNavigationButtons.querySelector('.current-button').classList.remove('current-button');
   headerNavigationButtons.querySelector('.header__btn').classList.add('current-button');
   onHomeButtonClick();
+  page = 1;
+  totalFoundPages = null;
+  renderPopularFilms(page);
+  renderPagination(1000, page);
 });
 
 headerNavigationButtons.addEventListener('click', event => {
@@ -137,6 +209,15 @@ function renderPagination(allPages, visualPage) {
     `;
   }
 
+  if (window.innerWidth > 767) {
+    if (page > 3) {
+      paginationItem += `
+    <li class="pagination__item pagination__number pagination__${isActive}">${1}</li>
+    <li class="pagination__item">...</li>
+    `;
+    }
+  }
+
   for (let pageLength = beforePage; pageLength <= afterPage; pageLength++) {
     if (pageLength > allPages) {
       continue;
@@ -153,19 +234,18 @@ function renderPagination(allPages, visualPage) {
       isActive = '';
     }
 
-    // if (window.innerWidth > 767) {
-    //   console.log('Че-то делаем');
-    //   if (page > 3) {
-    //     paginationItem += `
-    // <li class="pagination__item pagination__number pagination__${isActive}">${1}</li>
-    // <li class="pagination__item">...</li>
-    // `;
-    //   }
-    // }
-
     paginationItem += `
     <li class="pagination__item pagination__number pagination__${isActive}">${pageLength}</li>
     `;
+  }
+
+  if (window.innerWidth > 767) {
+    if (page > 3 && page < allPages - 4) {
+      paginationItem += `
+        <li class="pagination__item">...</li>
+        <li class="pagination__item pagination__number pagination__${isActive}">${page + 5}</li>
+    `;
+    }
   }
 
   if (visualPage < allPages) {
@@ -195,26 +275,45 @@ function renderPagination(allPages, visualPage) {
 
 function onPlusClick() {
   page += 1;
-  renderPagination(1000, page);
-  renderPopularFilms(page);
+
+  if (totalFoundPages) {
+    renderFilms(inputValue);
+    renderPagination(totalFoundPages, page);
+  } else {
+    renderPopularFilms(page);
+    renderPagination(1000, page);
+  }
+
   // document.documentElement.scrollTop = 0;
 }
 
 function onMinusClick() {
   page -= 1;
-  renderPagination(1000, page);
-  renderPopularFilms(page);
+  if (totalFoundPages) {
+    renderFilms(inputValue);
+    renderPagination(totalFoundPages, page);
+  } else {
+    renderPopularFilms(page);
+    renderPagination(1000, page);
+  }
+
   // document.documentElement.scrollTop = 0;
 }
 
 function onNumbersClick(event) {
   if (event.target.classList.contains('pagination__number')) {
     page = Number(event.target.textContent);
-    renderPagination(1000, page);
-    renderPopularFilms(page);
+    if (totalFoundPages) {
+      renderFilms(inputValue);
+      renderPagination(totalFoundPages, page);
+    } else {
+      renderPopularFilms(page);
+      renderPagination(1000, page);
+    }
+
     // document.documentElement.scrollTop = 0;
   }
 }
 
-renderPagination(1000, page);
 renderPopularFilms(page);
+renderPagination(1000, page);
