@@ -38,6 +38,7 @@ function renderPopularFilms() {
   getPopularFilms(page)
     .then(data => {
       const popularFilms = data.results;
+      headerErrorMessage.classList.add('is-hidden');
 
       const murkup = popularFilms
         .map(film => {
