@@ -280,6 +280,11 @@ function onEscClose(event) {
 
 function toggleModal() {
   modal.classList.toggle('is-hidden');
+  if (modal.classList.contains('is-hidden')) {
+    enableScroll();
+  } else {
+    disableScroll();
+  }
 }
 
 modal.addEventListener('click', event => {
@@ -410,6 +415,21 @@ function onNumbersClick(event) {
 
     // document.documentElement.scrollTop = 0;
   }
+}
+
+function disableScroll() {
+  const widthScroll = window.innerWidth - document.body.offsetWidth;
+
+  document.body.style.cssText = `
+        position: relative;
+        overflow: hidden;
+        heigth: 100vh;
+        padding-right: ${widthScroll}px;
+    `;
+}
+
+function enableScroll() {
+  document.body.style.cssText = ``;
 }
 
 renderPopularFilms(page);

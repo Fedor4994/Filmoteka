@@ -1,4 +1,6 @@
 .modal {
+  max-height: calc(100vh - 35px);
+  overflow-y: auto;
   width: 280px;
   position: relative;
   position: absolute;
