@@ -527,10 +527,6 @@ body {
   object-fit: cover;
 }
 
-.films__item:hover {
-  scale: 1.04;
-}
-
 .flims__desc_wrapper {
   width: 280px;
 }
@@ -582,6 +578,9 @@ body {
   }
 }
 @media screen and (min-width: 1280px) {
+  .films__item:hover {
+    scale: 1.04;
+  }
   .films {
     gap: 16px;
     padding-top: 56px;
