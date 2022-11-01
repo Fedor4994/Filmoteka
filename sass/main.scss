@@ -4,6 +4,10 @@
 @import './base/common';
 @import './base/container';
 
+@import './components/backdrop';
+@import './components/modal-film';
+@import './components/modal-film-info';
+
 @import './layout/header';
 @import './layout/films';
 @import './layout/library';

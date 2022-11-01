@@ -8,6 +8,7 @@ const filmsList = document.querySelector('.films');
 const libraryList = document.querySelector('.library');
 const paginationList = document.querySelector('.pagination');
 const searchForm = document.querySelector('.header__form');
+const modal = document.querySelector('.backdrop');
 
 let inputValue = '';
 let genres = null;
@@ -58,6 +59,7 @@ function renderPopularFilms() {
         src="https://image.tmdb.org/t/p/w500${film.poster_path}"
         alt="movie poster"
         class="films__image"
+        id=${film.id}
       />
       <div class="flims__desc_wrapper">
         <h3 class="films__title">${film.title}</h3>
@@ -113,7 +115,7 @@ function renderFilms(value) {
           <li class="films__item">
           <img src="https://image.tmdb.org/t/p/w500${
             film.poster_path
-          }" alt="movie poster" class="films__image"/>
+          }" alt="movie poster" class="films__image"  id=${film.id}  />
           <div class="flims__desc_wrapper">
           <h3 class="films__title">${film.title}</h3>
           <p class="films__description">${arr.join(', ')} | ${film?.release_date?.slice(0, 4)}</p>
@@ -192,6 +194,100 @@ function onLibraryButtonClick() {
   filmsList.style.display = 'none';
   libraryList.style.display = 'flex';
 }
+
+async function getMovieInfo(id) {
+  const resolve = await fetch(
+    `https://api.themoviedb.org/3/movie/${id}?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d`
+  );
+  const data = resolve.json();
+  return data;
+}
+
+function renderModal(info) {
+  const genres = info.genres.map(genre => genre.name);
+  window.addEventListener('keydown', onEscClose);
+  const murkup = `
+   <div class="modal">
+        <button data-modal-close type="button" class="modal__close">
+          <img src="./img/close.svg" alt="close" class="modal__close_icon" />
+        </button>
+        <img src="https://image.tmdb.org/t/p/w500${
+          info.poster_path
+        }" alt="movie poster" class="modal__img" />
+        <div class="modal__body">
+          <h3 class="modal__title">${info.title.toUpperCase()}</h3>
+          <div class="modal__stats">
+            <div class="modal__stats_left">
+              <span class="modal__text">Vote / Votes</span>
+              <span class="modal__text">Popularity</span>
+              <span class="modal__text">Original Title</span>
+              <span class="modal__text">Genre</span>
+            </div>
+            <div class="modal__stats_right">
+              <p class="modal__votes_info">
+                <span class="modal__vote">${info.vote_average.toFixed(
+                  2
+                )}</span> <span class="modal__text">/</span>
+                <span class="modal__votes">${info.vote_count}</span>
+              </p>
+              <span class="modal__text_bold">${info.popularity.toFixed(0)}</span>
+              <span class="modal__text_bold">${info.original_title.toUpperCase()}</span>
+              <span class="modal__text_bold">${genres.join(', ')}</span>
+            </div>
+          </div>
+          <span class="modal__about">ABOUT</span>
+          <p class="modal__desription">
+            ${info.overview}
+          </p>
+          <div class="modal__buttons">
+            <button type="button" class="modal__button-watched">ADD TO WATCHED</button>
+            <button type="button" class="modal__button-queue">ADD TO QUEUE</button>
+          </div>
+        </div>
+      </div>
+  `;
+
+  modal.innerHTML = murkup;
+
+  const modalClose = document.querySelector('.modal__close');
+  modalClose.addEventListener('click', () => {
+    toggleModal();
+    window.removeEventListener('keydown', onEscClose);
+  });
+}
+
+filmsList.addEventListener('click', openFilmsModal);
+
+function openFilmsModal(event) {
+  if (event.target.classList.contains('films__image')) {
+    getMovieInfo(Number(event.target.id))
+      .then(data => {
+        renderModal(data);
+        toggleModal();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+}
+
+function onEscClose(event) {
+  if (event.key === 'Escape') {
+    toggleModal();
+    window.removeEventListener('keydown', onEscClose);
+  }
+}
+
+function toggleModal() {
+  modal.classList.toggle('is-hidden');
+}
+
+modal.addEventListener('click', event => {
+  if (event.target.classList.contains('backdrop')) {
+    toggleModal();
+    window.removeEventListener('keydown', onEscClose);
+  }
+});
 
 function renderPagination(allPages, visualPage) {
   let paginationItem = '';

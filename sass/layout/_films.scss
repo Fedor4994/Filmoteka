@@ -8,10 +8,19 @@
 }
 
 .films__image {
+  cursor: pointer;
+  background-image: url(../img/no-image.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
   border-radius: 5px;
   width: 280px;
   height: 402px;
   object-fit: cover;
+}
+
+.films__item:hover {
+  scale: (1.04);
 }
 
 .flims__desc_wrapper {
