@@ -19,11 +19,11 @@ let page = 1;
 let totalFoundPages = null;
 
 let watchedFilms = [];
-if (localStorage.getItem('watched')) {
+if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
   watchedFilms = JSON.parse(localStorage.getItem('watched'));
 }
 let queueFilms = [];
-if (localStorage.getItem('queue')) {
+if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
   queueFilms = JSON.parse(localStorage.getItem('queue'));
 }
 
@@ -196,6 +196,9 @@ function onHomeButtonClick() {
 
   queueList.style.display = 'none';
   watchedList.style.display = 'none';
+  page = 1;
+  renderPopularFilms(page);
+  renderPagination(1000, page);
 }
 
 // Действия по нажатию на кнопку MY LIBRARY
@@ -211,14 +214,29 @@ function onLibraryButtonClick() {
 
   page = 1;
 
-  if (headerWatchedButton.classList.contains('active-header-button')) {
+  if (
+    headerWatchedButton.classList.contains('active-header-button') &&
+    localStorage.getItem('watched') &&
+    localStorage.getItem('watched') !== '[]'
+  ) {
     renderWatchedFilms(page);
+    renderPagination(totalFoundPages, page);
+  } else {
+    paginationList.innerHTML = 'No films';
   }
 
-  if (headerQueueButton.classList.contains('active-header-button')) {
+  if (
+    headerQueueButton.classList.contains('active-header-button') &&
+    localStorage.getItem('queue') &&
+    localStorage.getItem('queue') !== '[]'
+  ) {
     watchedList.style.display = 'none';
     queueList.style.display = 'flex';
     renderQueueFilms(page);
+  } else if (headerQueueButton.classList.contains('active-header-button')) {
+    watchedList.style.display = 'none';
+    queueList.style.display = 'flex';
+    paginationList.innerHTML = 'No films';
   }
 }
 
@@ -348,14 +366,14 @@ function renderWatchedFilms(index) {
     `;
   });
 
-  let size = 4; //размер подмассива
+  let size = 4;
   if (window.innerWidth > 767) {
     size = 8;
   }
   if (window.innerWidth > 1280) {
     size = 9;
   }
-  let subarray = []; //массив в который будет выведен результат.
+  let subarray = [];
   for (let i = 0; i < Math.ceil(murkup.length / size); i++) {
     subarray[i] = murkup.slice(i * size, i * size + size);
   }
@@ -389,15 +407,14 @@ function renderQueueFilms(index) {
     `;
   });
 
-  // let array = ['a', 'b', 'c', 'd', 'e', 6, 7, 8, 9, 10]; //массив, можно использовать массив объектов
-  let size = 4; //размер подмассива
+  let size = 4;
   if (window.innerWidth > 767) {
     size = 8;
   }
   if (window.innerWidth > 1280) {
     size = 9;
   }
-  let subarray = []; //массив в который будет выведен результат.
+  let subarray = [];
   for (let i = 0; i < Math.ceil(murkup.length / size); i++) {
     subarray[i] = murkup.slice(i * size, i * size + size);
   }
@@ -437,9 +454,10 @@ function openLibraryModal(event) {
               if (headerWatchedButton.classList.contains('active-header-button')) {
                 watchedFilms.splice(index, 1);
                 localStorage.setItem('watched', JSON.stringify(watchedFilms));
-                if (localStorage.getItem('watched')) {
+                if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
                   renderWatchedFilms(page);
                 } else {
+                  paginationList.innerHTML = 'No films';
                   watchedList.innerHTML = '';
                 }
 
@@ -454,9 +472,10 @@ function openLibraryModal(event) {
               if (headerQueueButton.classList.contains('active-header-button')) {
                 queueFilms.splice(index, 1);
                 localStorage.setItem('queue', JSON.stringify(queueFilms));
-                if (localStorage.getItem('queue')) {
+                if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
                   renderQueueFilms(page);
                 } else {
+                  paginationList.innerHTML = 'No films';
                   queueList.innerHTML = '';
                 }
 
@@ -684,8 +703,12 @@ headerWatchedButton.addEventListener('click', () => {
     return;
   }
   page = 1;
-  renderPagination(totalFoundPages, page);
-  renderWatchedFilms(page);
+  if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+    renderPagination(totalFoundPages, page);
+    renderWatchedFilms(page);
+  } else {
+    paginationList.innerHTML = 'No films';
+  }
 
   headerWatchedButton.classList.add('active-header-button');
   headerQueueButton.classList.remove('active-header-button');
@@ -698,8 +721,12 @@ headerQueueButton.addEventListener('click', () => {
     return;
   }
   page = 1;
-  renderPagination(totalFoundPages, page);
-  renderQueueFilms(page);
+  if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+    renderPagination(totalFoundPages, page);
+    renderQueueFilms(page);
+  } else {
+    paginationList.innerHTML = 'No films';
+  }
   headerQueueButton.classList.add('active-header-button');
   headerWatchedButton.classList.remove('active-header-button');
   watchedList.style.display = 'none';

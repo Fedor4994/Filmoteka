@@ -121,6 +121,10 @@
   height: 44px;
 }
 
+.modal__button-watched:active {
+  scale: 0.95;
+}
+
 .modal__button-queue {
   display: flex;
   align-items: center;
@@ -135,6 +139,10 @@
   background-color: transparent;
   width: 110px;
   height: 44px;
+}
+
+.modal__button-queue:active {
+  scale: 0.95;
 }
 
 @media screen and (min-width: 768px) {

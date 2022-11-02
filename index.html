@@ -21,51 +21,54 @@
     <link rel="stylesheet" href="./css/main.min.css" />
   </head>
   <body>
-    <header class="header header__home">
-      <div class="header__container container">
-        <nav class="header__navigation">
-          <a href="#" class="header__logo link">
-            <svg class="header__logo_icon" width="24" height="24">
-              <use href="./img/sprite.svg#icon-film"></use>
-            </svg>
-            <h1 class="header__title">Filmoteka</h1>
-          </a>
+    <div class="wrapper">
+      <header class="header header__home">
+        <div class="header__container container">
+          <nav class="header__navigation">
+            <a href="#" class="header__logo link">
+              <svg class="header__logo_icon" width="24" height="24">
+                <use href="./img/sprite.svg#icon-film"></use>
+              </svg>
+              <h1 class="header__title">Filmoteka</h1>
+            </a>
 
-          <div class="header__buttons_wrapper">
-            <button class="header__btn current-button">HOME</button>
-            <button class="header__btn">MY LIBRARY</button>
+            <div class="header__buttons_wrapper">
+              <button class="header__btn current-button">HOME</button>
+              <button class="header__btn">MY LIBRARY</button>
+            </div>
+          </nav>
+          <div class="header__search_wrapper">
+            <form class="header__form">
+              <input type="text" class="header__input" name="query" placeholder="Movie search" />
+              <button type="submit" class="header__search">Search</button>
+            </form>
+
+            <span class="header__error is-hidden"
+              >Search result not successful. Enter the correct movie name and try again</span
+            >
           </div>
-        </nav>
-        <div class="header__search_wrapper">
-          <form class="header__form">
-            <input type="text" class="header__input" name="query" placeholder="Movie search" />
-            <button type="submit" class="header__search">Search</button>
-          </form>
-
-          <span class="header__error is-hidden"
-            >Search result not successful. Enter the correct movie name and try again</span
-          >
+          <div class="header__library_wrapper">
+            <button type="button" class="header__watched_button active-header-button">
+              WATCHED
+            </button>
+            <button type="button" class="header__queue_button">QUEUE</button>
+          </div>
         </div>
-        <div class="header__library_wrapper">
-          <button type="button" class="header__watched_button active-header-button">WATCHED</button>
-          <button type="button" class="header__queue_button">QUEUE</button>
+      </header>
+
+      <main class="main">
+        <div class="container">
+          <ul class="films list"></ul>
+
+          <div class="library">
+            <ul class="watched list"></ul>
+            <ul class="queue list"></ul>
+          </div>
+
+          <ul class="pagination list"></ul>
         </div>
-      </div>
-    </header>
-
-    <main class="main">
-      <div class="container">
-        <ul class="films list"></ul>
-
-        <div class="library">
-          <ul class="watched list"></ul>
-          <ul class="queue list"></ul>
-        </div>
-
-        <ul class="pagination list"></ul>
-      </div>
-    </main>
-
+      </main>
+    </div>
     <footer class="footer">
       <div class="container footer__container">
         <p class="footer__text">© 2020 | All Rights Reserved |</p>
