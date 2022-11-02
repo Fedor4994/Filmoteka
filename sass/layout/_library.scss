@@ -1,13 +1,23 @@
-.library {
+.watched {
   display: none;
   flex-direction: column;
-  align-items: center;
   gap: 20px;
+  align-items: center;
+  padding-top: 20px;
+  padding-bottom: 40px;
+}
+
+.queue {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
   padding-top: 20px;
   padding-bottom: 40px;
 }
 
 .library__image {
+  cursor: pointer;
   border-radius: 5px;
   width: 280px;
   height: 402px;
@@ -19,15 +29,17 @@
 }
 
 .library__item {
+  width: 280px;
   height: 454px;
 }
 
-.library_title {
+.library__title {
   color: #000000;
   font-weight: 500;
   font-size: 12px;
   line-height: 14px;
   margin-top: 10px;
+  margin-bottom: 3px;
 }
 
 .library__description {
@@ -37,11 +49,49 @@
   line-height: 14px;
 }
 
+.library__vote {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 14px;
+  background: #ff6b01;
+  border-radius: 5px;
+  padding: 1px 10px;
+  margin-left: 5px;
+  color: #ffffff;
+}
+
+.clear__film {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid #ff001b;
+  background-color: transparent;
+  margin-left: auto;
+
+  width: 70px;
+  height: 34px;
+}
+
 @media screen and (min-width: 768px) {
-  .library {
+  .watched {
     gap: 32px;
     flex-direction: row;
-    justify-content: center;
+
+    flex-wrap: wrap;
+    padding-top: 59px;
+    padding-bottom: 61px;
+  }
+
+  .queue {
+    gap: 32px;
+    flex-direction: row;
+
     flex-wrap: wrap;
     padding-top: 59px;
     padding-bottom: 61px;
@@ -57,12 +107,14 @@
   }
 
   .library__item {
+    width: 336px;
     height: 495px;
   }
 
   .library__title {
     line-height: 16px;
     margin-top: 8px;
+    margin-bottom: 3px;
   }
 
   .library__description {
@@ -71,7 +123,14 @@
 }
 
 @media screen and (min-width: 1280px) {
-  .library {
+  .watched {
+    gap: 16px;
+    padding-top: 56px;
+    padding-bottom: 60px;
+    justify-content: flex-start;
+  }
+
+  .queue {
     gap: 16px;
     padding-top: 56px;
     padding-bottom: 60px;
@@ -88,17 +147,30 @@
   }
 
   .library__item {
+    width: 394px;
     height: 658px;
+  }
+
+  .library__item:hover {
+    scale: 1.04;
   }
 
   .library__title {
     font-size: 20px;
     line-height: 24px;
     margin-top: 12px;
+    margin-bottom: 3px;
   }
 
   .library__description {
-    font-size: 20px;
-    line-height: 24px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    line-height: 22px;
+  }
+
+  .library__vote {
+    padding: 3px 10px;
+    margin-left: 8px;
   }
 }

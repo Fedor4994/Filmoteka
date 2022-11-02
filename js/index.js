@@ -4,8 +4,11 @@ const headerErrorMessage = document.querySelector('.header__error');
 const headerNavigationButtons = document.querySelector('.header__buttons_wrapper');
 const headerHomePage = document.querySelector('.header__search_wrapper');
 const headerLibraryPage = document.querySelector('.header__library_wrapper');
+const headerWatchedButton = document.querySelector('.header__watched_button');
+const headerQueueButton = document.querySelector('.header__queue_button');
 const filmsList = document.querySelector('.films');
-const libraryList = document.querySelector('.library');
+const watchedList = document.querySelector('.watched');
+const queueList = document.querySelector('.queue');
 const paginationList = document.querySelector('.pagination');
 const searchForm = document.querySelector('.header__form');
 const modal = document.querySelector('.backdrop');
@@ -14,6 +17,15 @@ let inputValue = '';
 let genres = null;
 let page = 1;
 let totalFoundPages = null;
+
+let watchedFilms = [];
+if (localStorage.getItem('watched')) {
+  watchedFilms = JSON.parse(localStorage.getItem('watched'));
+}
+let queueFilms = [];
+if (localStorage.getItem('queue')) {
+  queueFilms = JSON.parse(localStorage.getItem('queue'));
+}
 
 async function getGenres() {
   const resolve = await fetch(
@@ -89,6 +101,14 @@ function searchFilms(event) {
   }
 }
 
+async function getMovies(movieName, page) {
+  const resolve = await fetch(
+    `https://api.themoviedb.org/3/search/movie?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d&query=${movieName}&page=${page}`
+  );
+  const data = resolve.json();
+  return data;
+}
+
 function renderFilms(value) {
   getMovies(value, page)
     .then(data => {
@@ -133,14 +153,6 @@ function renderFilms(value) {
     });
 }
 
-async function getMovies(movieName, page) {
-  const resolve = await fetch(
-    `https://api.themoviedb.org/3/search/movie?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d&query=${movieName}&page=${page}`
-  );
-  const data = resolve.json();
-  return data;
-}
-
 headerLogo.addEventListener('click', event => {
   event.preventDefault();
   // Находит кнопку с подчеркиванием, и снимвет его с нее, а после вешает на первый попавшийся header__btn, а тоесть на хоум пейдж
@@ -180,7 +192,10 @@ function onHomeButtonClick() {
   headerHomePage.style.display = 'flex';
 
   filmsList.style.display = 'flex';
-  libraryList.style.display = 'none';
+  watchedList.style.display = 'none';
+
+  queueList.style.display = 'none';
+  watchedList.style.display = 'none';
 }
 
 // Действия по нажатию на кнопку MY LIBRARY
@@ -192,7 +207,19 @@ function onLibraryButtonClick() {
   headerLibraryPage.style.display = 'flex';
 
   filmsList.style.display = 'none';
-  libraryList.style.display = 'flex';
+  watchedList.style.display = 'flex';
+
+  page = 1;
+
+  if (headerWatchedButton.classList.contains('active-header-button')) {
+    renderWatchedFilms(page);
+  }
+
+  if (headerQueueButton.classList.contains('active-header-button')) {
+    watchedList.style.display = 'none';
+    queueList.style.display = 'flex';
+    renderQueueFilms(page);
+  }
 }
 
 async function getMovieInfo(id) {
@@ -264,12 +291,191 @@ function openFilmsModal(event) {
       .then(data => {
         renderModal(data);
         toggleModal();
+
+        const watchedButton = document.querySelector('.modal__button-watched');
+        const queueButton = document.querySelector('.modal__button-queue');
+        watchedButton.addEventListener('click', () => {
+          watchedFilms.push({
+            id: data.id,
+            poster: data.poster_path,
+            title: data.title,
+            genres: data.genres,
+            date: data.release_date,
+            vote: data.vote_average,
+          });
+
+          localStorage.setItem('watched', JSON.stringify(watchedFilms));
+        });
+
+        queueButton.addEventListener('click', () => {
+          queueFilms.push({
+            id: data.id,
+            poster: data.poster_path,
+            title: data.title,
+            genres: data.genres,
+            date: data.release_date,
+            vote: data.vote_average,
+          });
+          localStorage.setItem('queue', JSON.stringify(queueFilms));
+        });
       })
       .catch(err => {
         console.log(err);
       });
   }
 }
+
+function renderWatchedFilms(index) {
+  const watchedFilms = JSON.parse(localStorage.getItem('watched'));
+
+  const murkup = watchedFilms.map(film => {
+    const genres = film.genres.map(genre => genre.name);
+    return `
+    <li class="library__item">
+              <img src="https://image.tmdb.org/t/p/w500${
+                film.poster
+              }" alt="movie cover" class="library__image" id=${film.id} />
+              <div class="library__descr_wrapper">
+                <h3 class="library__title">${film.title.toUpperCase()}</h3>
+                <p class="library__description">
+                  ${genres.join(', ')} | ${film?.date?.slice(
+      0,
+      4
+    )} <span class="library__vote">${film.vote.toFixed(1)}</span>
+                </p>
+              </div>
+            </li>
+    `;
+  });
+
+  let size = 4; //размер подмассива
+  if (window.innerWidth > 767) {
+    size = 8;
+  }
+  if (window.innerWidth > 1280) {
+    size = 9;
+  }
+  let subarray = []; //массив в который будет выведен результат.
+  for (let i = 0; i < Math.ceil(murkup.length / size); i++) {
+    subarray[i] = murkup.slice(i * size, i * size + size);
+  }
+
+  totalFoundPages = subarray.length;
+
+  watchedList.innerHTML = subarray[index - 1].join('');
+  renderPagination(totalFoundPages, page);
+}
+
+function renderQueueFilms(index) {
+  const queueFilms = JSON.parse(localStorage.getItem('queue'));
+
+  const murkup = queueFilms.map(film => {
+    const genres = film.genres.map(genre => genre.name);
+    return `
+    <li class="library__item">
+              <img src="https://image.tmdb.org/t/p/w500${
+                film.poster
+              }" alt="movie cover" class="library__image" id=${film.id} />
+              <div class="library__descr_wrapper">
+                <h3 class="library__title">${film.title.toUpperCase()}</h3>
+                <p class="library__description">
+                  ${genres.join(', ')} | ${film?.date?.slice(
+      0,
+      4
+    )} <span class="library__vote">${film.vote.toFixed(1)}</span>
+                </p>
+              </div>
+            </li>
+    `;
+  });
+
+  // let array = ['a', 'b', 'c', 'd', 'e', 6, 7, 8, 9, 10]; //массив, можно использовать массив объектов
+  let size = 4; //размер подмассива
+  if (window.innerWidth > 767) {
+    size = 8;
+  }
+  if (window.innerWidth > 1280) {
+    size = 9;
+  }
+  let subarray = []; //массив в который будет выведен результат.
+  for (let i = 0; i < Math.ceil(murkup.length / size); i++) {
+    subarray[i] = murkup.slice(i * size, i * size + size);
+  }
+
+  totalFoundPages = subarray.length;
+
+  queueList.innerHTML = subarray[index - 1].join('');
+  renderPagination(totalFoundPages, page);
+}
+
+watchedList.addEventListener('click', openLibraryModal);
+
+function openLibraryModal(event) {
+  if (event.target.classList.contains('library__image')) {
+    getMovieInfo(Number(event.target.id))
+      .then(data => {
+        renderModal(data);
+
+        const watchedButton = document.querySelector('.modal__button-watched');
+        const queueButton = document.querySelector('.modal__button-queue');
+        const modalBody = document.querySelector('.modal__body');
+        watchedButton.style.display = 'none';
+        queueButton.style.display = 'none';
+
+        modalBody.insertAdjacentHTML(
+          'beforeend',
+          `
+         <button class="clear__film">DELETE</button>
+        `
+        );
+
+        const deleteButton = document.querySelector('.clear__film');
+
+        deleteButton.addEventListener('click', () => {
+          watchedFilms.forEach((film, index) => {
+            if (film.id === data.id) {
+              if (headerWatchedButton.classList.contains('active-header-button')) {
+                watchedFilms.splice(index, 1);
+                localStorage.setItem('watched', JSON.stringify(watchedFilms));
+                if (localStorage.getItem('watched')) {
+                  renderWatchedFilms(page);
+                } else {
+                  watchedList.innerHTML = '';
+                }
+
+                toggleModal();
+                window.removeEventListener('keydown', onEscClose);
+              }
+            }
+          });
+
+          queueFilms.forEach((film, index) => {
+            if (film.id === data.id) {
+              if (headerQueueButton.classList.contains('active-header-button')) {
+                queueFilms.splice(index, 1);
+                localStorage.setItem('queue', JSON.stringify(queueFilms));
+                if (localStorage.getItem('queue')) {
+                  renderQueueFilms(page);
+                } else {
+                  queueList.innerHTML = '';
+                }
+
+                toggleModal();
+                window.removeEventListener('keydown', onEscClose);
+              }
+            }
+          });
+        });
+
+        toggleModal();
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+}
+
+queueList.addEventListener('click', openLibraryModal);
 
 function onEscClose(event) {
   if (event.key === 'Escape') {
@@ -378,6 +584,24 @@ function renderPagination(allPages, visualPage) {
 function onPlusClick() {
   page += 1;
 
+  if (
+    headerQueueButton.classList.contains('active-header-button') &&
+    header.classList.contains('header__library')
+  ) {
+    renderQueueFilms(page);
+    renderPagination(totalFoundPages, page);
+    return;
+  }
+
+  if (
+    headerWatchedButton.classList.contains('active-header-button') &&
+    header.classList.contains('header__library')
+  ) {
+    renderWatchedFilms(page);
+    renderPagination(totalFoundPages, page);
+    return;
+  }
+
   if (totalFoundPages) {
     renderFilms(inputValue);
     renderPagination(totalFoundPages, page);
@@ -391,6 +615,25 @@ function onPlusClick() {
 
 function onMinusClick() {
   page -= 1;
+
+  if (
+    headerQueueButton.classList.contains('active-header-button') &&
+    header.classList.contains('header__library')
+  ) {
+    renderQueueFilms(page);
+    renderPagination(totalFoundPages, page);
+    return;
+  }
+
+  if (
+    headerWatchedButton.classList.contains('active-header-button') &&
+    header.classList.contains('header__library')
+  ) {
+    renderWatchedFilms(page);
+    renderPagination(totalFoundPages, page);
+    return;
+  }
+
   if (totalFoundPages) {
     renderFilms(inputValue);
     renderPagination(totalFoundPages, page);
@@ -405,6 +648,25 @@ function onMinusClick() {
 function onNumbersClick(event) {
   if (event.target.classList.contains('pagination__number')) {
     page = Number(event.target.textContent);
+
+    if (
+      headerQueueButton.classList.contains('active-header-button') &&
+      header.classList.contains('header__library')
+    ) {
+      renderQueueFilms(page);
+      renderPagination(totalFoundPages, page);
+      return;
+    }
+
+    if (
+      headerWatchedButton.classList.contains('active-header-button') &&
+      header.classList.contains('header__library')
+    ) {
+      renderWatchedFilms(page);
+      renderPagination(totalFoundPages, page);
+      return;
+    }
+
     if (totalFoundPages) {
       renderFilms(inputValue);
       renderPagination(totalFoundPages, page);
@@ -416,6 +678,33 @@ function onNumbersClick(event) {
     // document.documentElement.scrollTop = 0;
   }
 }
+
+headerWatchedButton.addEventListener('click', () => {
+  if (headerWatchedButton.classList.contains('active-header-button')) {
+    return;
+  }
+  page = 1;
+  renderPagination(totalFoundPages, page);
+  renderWatchedFilms(page);
+
+  headerWatchedButton.classList.add('active-header-button');
+  headerQueueButton.classList.remove('active-header-button');
+  watchedList.style.display = 'flex';
+  queueList.style.display = 'none';
+});
+
+headerQueueButton.addEventListener('click', () => {
+  if (headerQueueButton.classList.contains('active-header-button')) {
+    return;
+  }
+  page = 1;
+  renderPagination(totalFoundPages, page);
+  renderQueueFilms(page);
+  headerQueueButton.classList.add('active-header-button');
+  headerWatchedButton.classList.remove('active-header-button');
+  watchedList.style.display = 'none';
+  queueList.style.display = 'flex';
+});
 
 function disableScroll() {
   const widthScroll = window.innerWidth - document.body.offsetWidth;

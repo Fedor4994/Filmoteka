@@ -18,6 +18,7 @@
 }
 
 .pagination__button_minus {
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,6 +30,7 @@
 }
 
 .pagination__button_plus {
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
