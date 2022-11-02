@@ -656,6 +656,10 @@ body {
 }
 
 .library__image {
+  background-image: url(../img/no-image.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
   cursor: pointer;
   border-radius: 5px;
   width: 280px;
