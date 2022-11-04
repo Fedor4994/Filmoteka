@@ -1,3 +1,4 @@
+// Переменные для елементов хедера
 const header = document.querySelector('.header');
 const headerLogo = document.querySelector('.header__logo');
 const headerErrorMessage = document.querySelector('.header__error');
@@ -6,18 +7,27 @@ const headerHomePage = document.querySelector('.header__search_wrapper');
 const headerLibraryPage = document.querySelector('.header__library_wrapper');
 const headerWatchedButton = document.querySelector('.header__watched_button');
 const headerQueueButton = document.querySelector('.header__queue_button');
+
+// Переменные для списков карточек популярных/просмотренных/запланированных фильмов и списка элементов пагинации
+// которые динамические заполняются контентом
 const filmsList = document.querySelector('.films');
 const watchedList = document.querySelector('.watched');
 const queueList = document.querySelector('.queue');
 const paginationList = document.querySelector('.pagination');
+
+// Форма в хедере с инпутом и кнопкой для сабмита
 const searchForm = document.querySelector('.header__form');
+// Модальное окно при нажатии на постер фильма
 const modal = document.querySelector('.backdrop');
 
+// Глобальные переменные для хранения значения инпута/списка всех жанров из API/текущей страници для пагинации/доступного кол-ва страниц
 let inputValue = '';
 let genres = null;
 let page = 1;
 let totalFoundPages = null;
 
+// Массивы для хранение данных о просмотренных и запланированных фильмах
+// При загрузке страницы заполняються данными из локального хранилища, если оно не пустое
 let watchedFilms = [];
 if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
   watchedFilms = JSON.parse(localStorage.getItem('watched'));
@@ -27,6 +37,7 @@ if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
   queueFilms = JSON.parse(localStorage.getItem('queue'));
 }
 
+// Запрос на сервер за массивом всех доступных жанров фильмов
 async function getGenres() {
   const resolve = await fetch(
     'https://api.themoviedb.org/3/genre/movie/list?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d&language=en-US'
@@ -35,6 +46,13 @@ async function getGenres() {
   return data;
 }
 
+// Присвоения массива жанров в глобальную переменную
+getGenres().then(data => {
+  genres = data.genres;
+});
+
+// Запрос на сервер за массивом из 20 самых популярных фильмов за неделю
+// В параметр передается глобальная переменная - номер страницы, проще говоря порции элементов, за которыми нужно делать запрос
 async function getPopularFilms(page) {
   const resolve = await fetch(
     `https://api.themoviedb.org/3/trending/movie/week?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d&page=${page}`
@@ -43,28 +61,33 @@ async function getPopularFilms(page) {
   return data;
 }
 
-getGenres().then(data => {
-  genres = data.genres;
-});
-
+// Функция заполнеиния списка популярных фильмов на гловной странице созданными карточками с динамически подставленными
+// данными из полученого массива из двадцати объектов фильмов
 function renderPopularFilms() {
   getPopularFilms(page)
     .then(data => {
-      const popularFilms = data.results;
+      // Когда новая пачка фильмов рендериться надобности в сообщении о ошибке больше нет
       headerErrorMessage.classList.add('is-hidden');
 
+      const popularFilms = data.results;
       const murkup = popularFilms
         .map(film => {
+          // Массив для назвний жанров конкретного фильма на конкретной итерации
           const arr = [];
 
+          // Цикл для перебора айдишников жанром конкретного фильма на конкретной итерации
           film.genre_ids.forEach(id => {
+            // Цикл для перебра массива всех доступых жанров из глобальной переменной
             genres.forEach(genre => {
+              // Если айдишнк жанра конкретного фильма совпадает с айдишнийком какого то жанра из всех доступных
+              // то мы пушим имя этого жанра в локальный массив, который отрисуется в карточке на месте жанров
               if (genre.id === id) {
                 arr.push(genre.name);
               }
             });
           });
 
+          // Шаблонная строка создающая карточку фильма с динамическими данными на каждой итерации
           return `
       <li class="films__item">
       <img
