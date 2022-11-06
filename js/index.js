@@ -245,7 +245,12 @@ function onLibraryButtonClick() {
     renderWatchedFilms(page);
     renderPagination(totalFoundPages, page);
   } else {
-    paginationList.innerHTML = 'No films';
+    paginationList.innerHTML = `
+    <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+    </div>
+    `;
   }
 
   if (
@@ -259,7 +264,12 @@ function onLibraryButtonClick() {
   } else if (headerQueueButton.classList.contains('active-header-button')) {
     watchedList.style.display = 'none';
     queueList.style.display = 'flex';
-    paginationList.innerHTML = 'No films';
+    paginationList.innerHTML = `
+    <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+    </div>
+    `;
   }
 }
 
@@ -450,6 +460,8 @@ function renderQueueFilms(index) {
 
 watchedList.addEventListener('click', openLibraryModal);
 
+queueList.addEventListener('click', openLibraryModal);
+
 function openLibraryModal(event) {
   if (event.target.classList.contains('library__image')) {
     getMovieInfo(Number(event.target.id))
@@ -458,9 +470,15 @@ function openLibraryModal(event) {
 
         const watchedButton = document.querySelector('.modal__button-watched');
         const queueButton = document.querySelector('.modal__button-queue');
+
         const modalBody = document.querySelector('.modal__body');
-        watchedButton.style.display = 'none';
-        queueButton.style.display = 'none';
+        if (headerWatchedButton.classList.contains('active-header-button')) {
+          watchedButton.style.display = 'none';
+          queueButton.style.display = 'flex';
+        } else {
+          queueButton.style.display = 'none';
+          watchedButton.style.display = 'flex';
+        }
 
         modalBody.insertAdjacentHTML(
           'beforeend',
@@ -471,42 +489,36 @@ function openLibraryModal(event) {
 
         const deleteButton = document.querySelector('.clear__film');
 
+        watchedButton.addEventListener('click', () => {
+          watchedFilms.push({
+            id: data.id,
+            poster: data.poster_path,
+            title: data.title,
+            genres: data.genres,
+            date: data.release_date,
+            vote: data.vote_average,
+          });
+
+          localStorage.setItem('watched', JSON.stringify(watchedFilms));
+          deleteQueueFilm(data);
+        });
+
+        queueButton.addEventListener('click', () => {
+          queueFilms.push({
+            id: data.id,
+            poster: data.poster_path,
+            title: data.title,
+            genres: data.genres,
+            date: data.release_date,
+            vote: data.vote_average,
+          });
+          localStorage.setItem('queue', JSON.stringify(queueFilms));
+          deleteWatchedFilm(data);
+        });
+
         deleteButton.addEventListener('click', () => {
-          watchedFilms.forEach((film, index) => {
-            if (film.id === data.id) {
-              if (headerWatchedButton.classList.contains('active-header-button')) {
-                watchedFilms.splice(index, 1);
-                localStorage.setItem('watched', JSON.stringify(watchedFilms));
-                if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
-                  renderWatchedFilms(page);
-                } else {
-                  paginationList.innerHTML = 'No films';
-                  watchedList.innerHTML = '';
-                }
-
-                toggleModal();
-                window.removeEventListener('keydown', onEscClose);
-              }
-            }
-          });
-
-          queueFilms.forEach((film, index) => {
-            if (film.id === data.id) {
-              if (headerQueueButton.classList.contains('active-header-button')) {
-                queueFilms.splice(index, 1);
-                localStorage.setItem('queue', JSON.stringify(queueFilms));
-                if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
-                  renderQueueFilms(page);
-                } else {
-                  paginationList.innerHTML = 'No films';
-                  queueList.innerHTML = '';
-                }
-
-                toggleModal();
-                window.removeEventListener('keydown', onEscClose);
-              }
-            }
-          });
+          deleteWatchedFilm(data);
+          deleteQueueFilm(data);
         });
 
         toggleModal();
@@ -517,7 +529,55 @@ function openLibraryModal(event) {
   }
 }
 
-queueList.addEventListener('click', openLibraryModal);
+function deleteQueueFilm(data) {
+  queueFilms.forEach((film, index) => {
+    if (film.id === data.id) {
+      if (headerQueueButton.classList.contains('active-header-button')) {
+        queueFilms.splice(index, 1);
+        localStorage.setItem('queue', JSON.stringify(queueFilms));
+        if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+          renderQueueFilms(page);
+        } else {
+          paginationList.innerHTML = `
+                  <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+                  </div>
+                  `;
+          queueList.innerHTML = '';
+        }
+
+        toggleModal();
+        window.removeEventListener('keydown', onEscClose);
+      }
+    }
+  });
+}
+
+function deleteWatchedFilm(data) {
+  watchedFilms.forEach((film, index) => {
+    if (film.id === data.id) {
+      if (headerWatchedButton.classList.contains('active-header-button')) {
+        watchedFilms.splice(index, 1);
+        localStorage.setItem('watched', JSON.stringify(watchedFilms));
+        if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+          renderWatchedFilms(page);
+        } else {
+          paginationList.innerHTML = `
+                  <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+                  </div>
+                  `;
+          watchedList.innerHTML = '';
+        }
+
+        toggleModal();
+        window.removeEventListener('keydown', onEscClose);
+      }
+    }
+  });
+}
 
 function onEscClose(event) {
   if (event.key === 'Escape') {
@@ -730,7 +790,12 @@ headerWatchedButton.addEventListener('click', () => {
     renderPagination(totalFoundPages, page);
     renderWatchedFilms(page);
   } else {
-    paginationList.innerHTML = 'No films';
+    paginationList.innerHTML = `
+    <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+    </div>
+    `;
   }
 
   headerWatchedButton.classList.add('active-header-button');
@@ -748,7 +813,12 @@ headerQueueButton.addEventListener('click', () => {
     renderPagination(totalFoundPages, page);
     renderQueueFilms(page);
   } else {
-    paginationList.innerHTML = 'No films';
+    paginationList.innerHTML = `
+    <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+    </div>
+    `;
   }
   headerQueueButton.classList.add('active-header-button');
   headerWatchedButton.classList.remove('active-header-button');
