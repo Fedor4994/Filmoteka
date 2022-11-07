@@ -237,16 +237,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #000000;
   font-weight: 500;
   font-size: 12px;
   line-height: 16px;
   border-radius: 5px;
   cursor: pointer;
-  border: none;
-  background-color: #ff6b01;
+  border: 1px solid #000000;
+  background-color: transparent;
   width: 110px;
   height: 44px;
+}
+
+.modal__button-watched:hover {
+  color: #ffffff;
+  background-color: #ff6b01;
+  border: none;
 }
 
 .modal__button-watched:active {
@@ -267,6 +273,12 @@ body {
   background-color: transparent;
   width: 110px;
   height: 44px;
+}
+
+.modal__button-queue:hover {
+  color: #ffffff;
+  background-color: #ff6b01;
+  border: none;
 }
 
 .modal__button-queue:active {
@@ -357,7 +369,7 @@ body {
 
 .header__buttons_wrapper {
   display: flex;
-  gap: 39px;
+  gap: 15px;
 }
 
 .header__btn {
@@ -483,6 +495,53 @@ body {
   border: none;
 }
 
+.your-profile {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid #ff6b01;
+  background-color: transparent;
+  width: 70px;
+  height: 25px;
+}
+
+.login-button:hover {
+  background-color: #ff6b01;
+}
+
+.d-none {
+  display: none;
+}
+
+.your-profile__text {
+  font-weight: 500;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.your-profile__exit {
+  cursor: pointer;
+  background-color: transparent;
+  color: #ff001b;
+  border: none;
+}
+
+.your-profile__image {
+  display: none;
+}
+
 @media screen and (min-width: 768px) {
   .header__home {
     background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)), url("../img/abstract-background-laptop.png");
@@ -514,6 +573,9 @@ body {
     gap: 32px;
     margin-top: -14px;
   }
+  .header__buttons_wrapper {
+    gap: 39px;
+  }
   .header__watched_button {
     width: 152px;
     height: 44px;
@@ -521,6 +583,9 @@ body {
   .header__queue_button {
     width: 152px;
     height: 44px;
+  }
+  .your-profile__text {
+    font-size: 16px;
   }
 }
 @media screen and (min-width: 1280px) {
@@ -545,6 +610,12 @@ body {
   .header__queue_button {
     width: 148px;
     height: 42px;
+  }
+  .your-profile__image {
+    display: block;
+  }
+  .your-profile__text {
+    font-size: 22px;
   }
 }
 .films {
@@ -621,6 +692,7 @@ body {
 @media screen and (min-width: 1280px) {
   .films__item:hover {
     scale: 1.04;
+    transition: scale 250ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   .films {
     gap: 16px;
@@ -731,6 +803,12 @@ body {
   height: 34px;
 }
 
+.clear__film:hover {
+  border: none;
+  background-color: #ff001b;
+  color: #ffffff;
+}
+
 @media screen and (min-width: 768px) {
   .watched {
     gap: 32px;
@@ -792,6 +870,7 @@ body {
   }
   .library__item:hover {
     scale: 1.04;
+    transition: scale 250ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   .library__title {
     font-size: 20px;

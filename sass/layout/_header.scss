@@ -32,7 +32,7 @@
 
 .header__buttons_wrapper {
   display: flex;
-  gap: 39px;
+  gap: 15px;
 }
 
 .header__btn {
@@ -159,6 +159,52 @@
   border: none;
 }
 
+.your-profile {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid #ff6b01;
+  background-color: transparent;
+  width: 70px;
+  height: 25px;
+}
+
+.login-button:hover {
+  background-color: #ff6b01;
+}
+
+.d-none {
+  display: none;
+}
+
+.your-profile__text {
+  font-weight: 500;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.your-profile__exit {
+  cursor: pointer;
+  background-color: transparent;
+  color: #ff001b;
+  border: none;
+}
+
+.your-profile__image {
+  display: none;
+}
 @media screen and (min-width: 768px) {
   .header__home {
     background-image: linear-gradient(rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.26)),
@@ -200,6 +246,10 @@
     margin-top: -14px;
   }
 
+  .header__buttons_wrapper {
+    gap: 39px;
+  }
+
   .header__watched_button {
     width: 152px;
     height: 44px;
@@ -208,6 +258,10 @@
   .header__queue_button {
     width: 152px;
     height: 44px;
+  }
+
+  .your-profile__text {
+    font-size: 16px;
   }
 }
 
@@ -240,5 +294,13 @@
   .header__queue_button {
     width: 148px;
     height: 42px;
+  }
+
+  .your-profile__image {
+    display: block;
+  }
+
+  .your-profile__text {
+    font-size: 22px;
   }
 }

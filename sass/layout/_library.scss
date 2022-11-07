@@ -81,6 +81,12 @@
   height: 34px;
 }
 
+.clear__film:hover {
+  border: none;
+  background-color: #ff001b;
+  color: #ffffff;
+}
+
 @media screen and (min-width: 768px) {
   .watched {
     gap: 32px;
@@ -156,6 +162,7 @@
 
   .library__item:hover {
     scale: 1.04;
+    transition: scale 250ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .library__title {

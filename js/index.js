@@ -2,11 +2,14 @@
 const header = document.querySelector('.header');
 const headerLogo = document.querySelector('.header__logo');
 const headerErrorMessage = document.querySelector('.header__error');
-const headerNavigationButtons = document.querySelector('.header__buttons_wrapper');
+const headerHomeButton = document.querySelector('.header__btn_home');
+const headerLibraryButton = document.querySelector('.header__btn_library');
 const headerHomePage = document.querySelector('.header__search_wrapper');
 const headerLibraryPage = document.querySelector('.header__library_wrapper');
 const headerWatchedButton = document.querySelector('.header__watched_button');
 const headerQueueButton = document.querySelector('.header__queue_button');
+const profile = document.querySelector('.your-profile');
+const loginButton = document.querySelector('.login-button');
 
 // Переменные для списков карточек популярных/просмотренных/запланированных фильмов и списка элементов пагинации
 // которые динамические заполняются контентом
@@ -25,6 +28,12 @@ let inputValue = '';
 let genres = null;
 let page = 1;
 let totalFoundPages = null;
+let size = null;
+
+let filmsInWatched = [];
+if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+  filmsInWatched = JSON.parse(localStorage.getItem('watched'));
+}
 
 // Массивы для хранение данных о просмотренных и запланированных фильмах
 // При загрузке страницы заполняються данными из локального хранилища, если оно не пустое
@@ -137,6 +146,8 @@ function renderFilms(value) {
     .then(data => {
       if (data.total_pages === 0) {
         headerErrorMessage.classList.remove('is-hidden');
+        headerErrorMessage.textContent =
+          'Search result not successful. Enter the correct movie name and try again';
         return;
       }
       headerErrorMessage.classList.add('is-hidden');
@@ -176,38 +187,28 @@ function renderFilms(value) {
     });
 }
 
-headerLogo.addEventListener('click', event => {
+headerLogo.addEventListener('click', onLogoClick);
+function onLogoClick(event) {
   event.preventDefault();
   // Находит кнопку с подчеркиванием, и снимвет его с нее, а после вешает на первый попавшийся header__btn, а тоесть на хоум пейдж
-  headerNavigationButtons.querySelector('.current-button').classList.remove('current-button');
-  headerNavigationButtons.querySelector('.header__btn').classList.add('current-button');
+
+  document.querySelector('.current-button').classList.remove('current-button');
+  document.querySelector('.header__btn').classList.add('current-button');
   onHomeButtonClick();
   page = 1;
   totalFoundPages = null;
   renderPopularFilms(page);
   renderPagination(1000, page);
-});
+}
 
-headerNavigationButtons.addEventListener('click', event => {
-  const target = event.target;
-  // Если нажали НЕ по кнопке с подчеркиванием, то находим среди двух кнопок ту у которой оно есть и удаляем
-  // а той кнопке по которой кликнули(у которой нет подчеркивания), той добавляем класс
-  if (!target.classList.contains('current-button') && target.classList.contains('header__btn')) {
-    event.currentTarget.querySelector('.current-button').classList.remove('current-button');
-    target.classList.add('current-button');
-
-    //Вызов необходимых функций при нажатии на ту, или иную кнопку
-    if (target.textContent === 'HOME') {
-      onHomeButtonClick();
-    }
-    if (target.textContent === 'MY LIBRARY') {
-      onLibraryButtonClick();
-    }
-  }
-});
+headerHomeButton.addEventListener('click', onHomeButtonClick);
+headerLibraryButton.addEventListener('click', onLibraryButtonClick);
 
 // Действия по нажатию на кнопку HOME
 function onHomeButtonClick() {
+  headerHomeButton.classList.add('current-button');
+  headerLibraryButton.classList.remove('current-button');
+
   header.classList.add('header__home');
   header.classList.remove('header__library');
 
@@ -226,6 +227,13 @@ function onHomeButtonClick() {
 
 // Действия по нажатию на кнопку MY LIBRARY
 function onLibraryButtonClick() {
+  if (!checkAuth()) {
+    return;
+  }
+
+  headerHomeButton.classList.remove('current-button');
+  headerLibraryButton.classList.add('current-button');
+
   header.classList.remove('header__home');
   header.classList.add('header__library');
 
@@ -346,6 +354,36 @@ function openFilmsModal(event) {
         const watchedButton = document.querySelector('.modal__button-watched');
         const queueButton = document.querySelector('.modal__button-queue');
         watchedButton.addEventListener('click', () => {
+          if (watchedFilms.find(film => film.id === data.id)) {
+            toggleModal();
+            headerErrorMessage.classList.remove('is-hidden');
+            headerErrorMessage.textContent = 'You already added this movie to watched';
+            document.documentElement.scrollTop = 0;
+            return;
+          }
+          headerErrorMessage.classList.add('is-hidden');
+
+          if (queueFilms.find(film => film.id === data.id)) {
+            queueFilms.forEach((film, index) => {
+              if (film.id === data.id) {
+                queueFilms.splice(index, 1);
+                localStorage.setItem('queue', JSON.stringify(queueFilms));
+                if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+                  renderQueueFilms(page);
+                } else {
+                  paginationList.innerHTML = `
+                  <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+                  </div>
+                  `;
+                  queueList.innerHTML = '';
+                }
+
+                window.removeEventListener('keydown', onEscClose);
+              }
+            });
+          }
           watchedFilms.push({
             id: data.id,
             poster: data.poster_path,
@@ -359,6 +397,36 @@ function openFilmsModal(event) {
         });
 
         queueButton.addEventListener('click', () => {
+          if (queueFilms.find(film => film.id === data.id)) {
+            toggleModal();
+            headerErrorMessage.classList.remove('is-hidden');
+            headerErrorMessage.textContent = 'You already added this movie to queue';
+            document.documentElement.scrollTop = 0;
+            return;
+          }
+          headerErrorMessage.classList.add('is-hidden');
+
+          if (watchedFilms.find(film => film.id === data.id)) {
+            watchedFilms.forEach((film, index) => {
+              if (film.id === data.id) {
+                watchedFilms.splice(index, 1);
+                localStorage.setItem('watched', JSON.stringify(watchedFilms));
+                if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+                  renderWatchedFilms(page);
+                } else {
+                  paginationList.innerHTML = `
+                  <div class="empty-page">
+                  <img src="./img/empty.jpg" alt="no films img" />
+                  <span class="empty-page_text">There are no films here yet</span>
+                  </div>
+                  `;
+                  watchedList.innerHTML = '';
+                }
+
+                window.removeEventListener('keydown', onEscClose);
+              }
+            });
+          }
           queueFilms.push({
             id: data.id,
             poster: data.poster_path,
@@ -399,14 +467,16 @@ function renderWatchedFilms(index) {
     `;
   });
 
-  let size = 4;
+  size = 4;
   if (window.innerWidth > 767) {
     size = 8;
   }
   if (window.innerWidth > 1280) {
     size = 9;
   }
+
   let subarray = [];
+
   for (let i = 0; i < Math.ceil(murkup.length / size); i++) {
     subarray[i] = murkup.slice(i * size, i * size + size);
   }
@@ -440,7 +510,7 @@ function renderQueueFilms(index) {
     `;
   });
 
-  let size = 4;
+  size = 4;
   if (window.innerWidth > 767) {
     size = 8;
   }
@@ -490,6 +560,11 @@ function openLibraryModal(event) {
         const deleteButton = document.querySelector('.clear__film');
 
         watchedButton.addEventListener('click', () => {
+          if (watchedFilms.find(film => film.id === data.id)) {
+            toggleModal();
+            return;
+          }
+
           watchedFilms.push({
             id: data.id,
             poster: data.poster_path,
@@ -504,6 +579,11 @@ function openLibraryModal(event) {
         });
 
         queueButton.addEventListener('click', () => {
+          if (queueFilms.find(film => film.id === data.id)) {
+            toggleModal();
+            return;
+          }
+
           queueFilms.push({
             id: data.id,
             poster: data.poster_path,
@@ -533,6 +613,9 @@ function deleteQueueFilm(data) {
   queueFilms.forEach((film, index) => {
     if (film.id === data.id) {
       if (headerQueueButton.classList.contains('active-header-button')) {
+        if (queueFilms.length === size + 1) {
+          page -= 1;
+        }
         queueFilms.splice(index, 1);
         localStorage.setItem('queue', JSON.stringify(queueFilms));
         if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
@@ -558,6 +641,9 @@ function deleteWatchedFilm(data) {
   watchedFilms.forEach((film, index) => {
     if (film.id === data.id) {
       if (headerWatchedButton.classList.contains('active-header-button')) {
+        if (watchedFilms.length === size + 1) {
+          page -= 1;
+        }
         watchedFilms.splice(index, 1);
         localStorage.setItem('watched', JSON.stringify(watchedFilms));
         if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
@@ -825,6 +911,26 @@ headerQueueButton.addEventListener('click', () => {
   watchedList.style.display = 'none';
   queueList.style.display = 'flex';
 });
+
+loginButton.addEventListener('click', () => {
+  profile.classList.remove('d-none');
+  loginButton.classList.add('d-none');
+});
+
+profile.addEventListener('click', event => {
+  if (event.target.classList.contains('your-profile__exit')) {
+    profile.classList.add('d-none');
+    loginButton.classList.remove('d-none');
+    onLogoClick(event);
+  }
+});
+
+function checkAuth() {
+  if (profile.classList.contains('d-none')) {
+    return false;
+  }
+  return true;
+}
 
 function disableScroll() {
   const widthScroll = window.innerWidth - document.body.offsetWidth;

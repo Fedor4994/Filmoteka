@@ -109,16 +109,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #000000;
   font-weight: 500;
   font-size: 12px;
   line-height: 16px;
   border-radius: 5px;
   cursor: pointer;
-  border: none;
-  background-color: #ff6b01;
+  border: 1px solid #000000;
+  background-color: transparent;
   width: 110px;
   height: 44px;
+}
+
+.modal__button-watched:hover {
+  color: #ffffff;
+  background-color: #ff6b01;
+  border: none;
 }
 
 .modal__button-watched:active {
@@ -139,6 +145,11 @@
   background-color: transparent;
   width: 110px;
   height: 44px;
+}
+.modal__button-queue:hover {
+  color: #ffffff;
+  background-color: #ff6b01;
+  border: none;
 }
 
 .modal__button-queue:active {
