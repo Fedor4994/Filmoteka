@@ -320,6 +320,11 @@ function userAuthorization(event) {
         const user = auth.currentUser;
         const databaseRef = database.ref();
 
+        localStorage.setItem('token', user.Aa);
+        authToken = localStorage.getItem('token');
+        getWatchedFilmsFromDb(authToken);
+        getQueueFilmsFromDb(authToken);
+
         const userData = {
           email: userEmail,
           password: userPassword,
@@ -330,10 +335,11 @@ function userAuthorization(event) {
 
         loginModalClose();
         profileText.textContent = userName;
-        // globalUserName = userName;
+        globalUserName = userName;
         profile.classList.remove('d-none');
         loginButton.classList.add('d-none');
         localStorage.setItem('auth', true);
+
         event.target.reset();
       })
       .catch(err => {
@@ -711,6 +717,11 @@ function openFilmsModal(event) {
         const watchedButton = document.querySelector('.modal__button-watched');
         const queueButton = document.querySelector('.modal__button-queue');
         watchedButton.addEventListener('click', () => {
+          if (!checkAuth()) {
+            openLoginModal();
+            return;
+          }
+
           if (watchedFilms.find(film => film.id === data.id)) {
             toggleModal();
             headerErrorMessage.classList.remove('is-hidden');
@@ -758,6 +769,11 @@ function openFilmsModal(event) {
         });
 
         queueButton.addEventListener('click', () => {
+          if (!checkAuth()) {
+            openLoginModal();
+            return;
+          }
+
           if (queueFilms.find(film => film.id === data.id)) {
             toggleModal();
             headerErrorMessage.classList.remove('is-hidden');
@@ -1046,10 +1062,6 @@ function onEscClose(event) {
 }
 
 function toggleModal() {
-  if (!checkAuth()) {
-    openLoginModal();
-    return;
-  }
   modal.classList.toggle('is-hidden');
   if (modal.classList.contains('is-hidden')) {
     enableScroll();
