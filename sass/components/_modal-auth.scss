@@ -30,6 +30,7 @@
 .login-input {
   height: 34px;
   padding-left: 30px;
+  width: 100%;
 }
 
 .login-input:-webkit-autofill,
@@ -83,7 +84,7 @@
   cursor: pointer;
   border: 2px solid #ff6b01;
   background-color: transparent;
-  width: 70px;
+  width: 65px;
   height: 25px;
 }
 
@@ -115,9 +116,17 @@
   justify-content: space-between;
 }
 
+.fieldset {
+  max-width: 250px;
+}
+
 @media screen and(min-width: 768px) {
   .login-modal {
     width: 400px;
+  }
+
+  .fieldset {
+    max-width: 1200px;
   }
 }
 

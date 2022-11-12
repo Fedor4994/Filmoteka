@@ -41,6 +41,10 @@ let totalFoundPages = null;
 let size = null;
 let authToken = null;
 
+if (localStorage.getItem('token')) {
+  authToken = localStorage.getItem('token');
+}
+
 // Массивы для хранение данных о просмотренных и запланированных фильмах
 // При загрузке страницы заполняються данными из локального хранилища, если оно не пустое
 let watchedFilms = [];
@@ -49,6 +53,17 @@ let watchedFilms = [];
 //   watchedFilms = JSON.parse(localStorage.getItem('watched'));
 // }
 let queueFilms = [];
+
+if (localStorage.getItem('auth') === 'true') {
+  profileText.textContent = localStorage.getItem('globalUserName');
+  profile.classList.remove('d-none');
+  loginButton.classList.add('d-none');
+  localStorage.setItem('auth', true);
+  getWatchedFilmsFromDb(authToken);
+  getQueueFilmsFromDb(authToken);
+
+  loginForm.reset();
+}
 
 // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
 //   queueFilms = JSON.parse(localStorage.getItem('queue'));
@@ -95,7 +110,9 @@ profile.addEventListener('click', event => {
   if (event.target.classList.contains('your-profile__exit')) {
     profile.classList.add('d-none');
     loginButton.classList.remove('d-none');
+    localStorage.setItem('auth', false);
     onLogoClick(event);
+    // createQueueFilmsDb();
   }
 });
 
@@ -147,6 +164,7 @@ function signIn(event) {
 
     authWithEmailAndPassword(userEmail, userPassword)
       .then(data => {
+        localStorage.setItem('token', data.idToken);
         authToken = data.idToken;
         if (getWatchedFilmsFromDb(authToken) === 'No token') {
           alert('Incorrect email or password');
@@ -173,6 +191,7 @@ function signIn(event) {
         loginModalClose();
 
         profile.classList.remove('d-none');
+        localStorage.setItem('auth', true);
         loginButton.classList.add('d-none');
         loginForm.removeEventListener('submit', signIn);
 
@@ -181,6 +200,7 @@ function signIn(event) {
             const name = Object.values(userData).find(user => user.email === data.email);
 
             profileText.textContent = name.name;
+            localStorage.setItem('globalUserName', name.name);
           })
           .catch(err => {
             console.log(err);
@@ -290,6 +310,7 @@ function userAuthorization(event) {
   const userPassword = event.target.elements.password.value.trim();
   if (userName !== '' && userEmail !== '' && userPassword !== '') {
     console.log(userName);
+    localStorage.setItem('globalUserName', userName);
     console.log(userEmail);
     console.log(userPassword);
 
@@ -309,9 +330,10 @@ function userAuthorization(event) {
 
         loginModalClose();
         profileText.textContent = userName;
-
+        // globalUserName = userName;
         profile.classList.remove('d-none');
         loginButton.classList.add('d-none');
+        localStorage.setItem('auth', true);
         event.target.reset();
       })
       .catch(err => {
@@ -587,7 +609,7 @@ function onLibraryButtonClick() {
 
   page = 1;
 
-  if (headerWatchedButton.classList.contains('active-header-button') && watchedFilms) {
+  if (headerWatchedButton.classList.contains('active-header-button') && watchedFilms.length !== 0) {
     renderWatchedFilms(page);
     renderPagination(totalFoundPages, page);
   } else {
@@ -599,7 +621,7 @@ function onLibraryButtonClick() {
     `;
   }
 
-  if (headerQueueButton.classList.contains('active-header-button') && queueFilms) {
+  if (headerQueueButton.classList.contains('active-header-button') && queueFilms.length !== 0) {
     watchedList.style.display = 'none';
     queueList.style.display = 'flex';
     renderQueueFilms(page);
@@ -689,7 +711,6 @@ function openFilmsModal(event) {
         const watchedButton = document.querySelector('.modal__button-watched');
         const queueButton = document.querySelector('.modal__button-queue');
         watchedButton.addEventListener('click', () => {
-          console.log(watchedFilms);
           if (watchedFilms.find(film => film.id === data.id)) {
             toggleModal();
             headerErrorMessage.classList.remove('is-hidden');
@@ -706,7 +727,7 @@ function openFilmsModal(event) {
                 createQueueFilmsDb();
                 // localStorage.setItem('queue', JSON.stringify(queueFilms));
                 // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
-                if (queueFilms) {
+                if (queueFilms.length !== 0) {
                   renderQueueFilms(page);
                 } else {
                   paginationList.innerHTML = `
@@ -746,7 +767,6 @@ function openFilmsModal(event) {
           }
           headerErrorMessage.classList.add('is-hidden');
 
-          console.log(watchedFilms);
           if (watchedFilms.find(film => film.id === data.id)) {
             watchedFilms.forEach((film, index) => {
               if (film.id === data.id) {
@@ -754,7 +774,7 @@ function openFilmsModal(event) {
                 createWatchedFilmsDb();
                 // localStorage.setItem('watched', JSON.stringify(watchedFilms));
                 // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
-                if (watchedFilms) {
+                if (watchedFilms.length !== 0) {
                   renderWatchedFilms(page);
                 } else {
                   paginationList.innerHTML = `
@@ -969,7 +989,7 @@ function deleteQueueFilm(data) {
         createQueueFilmsDb();
         // localStorage.setItem('queue', JSON.stringify(queueFilms));
         // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
-        if (queueFilms) {
+        if (queueFilms.length !== 0) {
           renderQueueFilms(page);
         } else {
           paginationList.innerHTML = `
@@ -999,7 +1019,7 @@ function deleteWatchedFilm(data) {
         createWatchedFilmsDb();
         // localStorage.setItem('watched', JSON.stringify(watchedFilms));
         // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
-        if (watchedFilms) {
+        if (watchedFilms.length !== 0) {
           renderWatchedFilms(page);
         } else {
           paginationList.innerHTML = `
@@ -1230,7 +1250,7 @@ headerWatchedButton.addEventListener('click', () => {
   }
   page = 1;
   // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
-  if (watchedFilms) {
+  if (watchedFilms.length !== 0) {
     renderPagination(totalFoundPages, page);
     renderWatchedFilms(page);
   } else {
@@ -1254,7 +1274,7 @@ headerQueueButton.addEventListener('click', () => {
   }
   page = 1;
   // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
-  if (queueFilms) {
+  if (queueFilms.length !== 0) {
     renderPagination(totalFoundPages, page);
     renderQueueFilms(page);
   } else {
