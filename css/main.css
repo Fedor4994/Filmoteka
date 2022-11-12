@@ -325,6 +325,131 @@ body {
     width: 136px;
   }
 }
+.login-modal {
+  width: 280px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.modal__title_auth {
+  font-weight: 500;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.login-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.login-input {
+  height: 34px;
+  padding-left: 30px;
+}
+
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  padding-left: 5px;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.login {
+  background-image: url("../img/input-person.png");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 25px 25px;
+}
+
+.email {
+  background-image: url("../img/input-email.png");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 25px 25px;
+}
+
+.password {
+  background-image: url("../img/input-password.png");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 25px 25px;
+}
+
+.login-lable {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 22px;
+  gap: 7px;
+}
+
+.modal-footer__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid #ff6b01;
+  background-color: transparent;
+  width: 70px;
+  height: 25px;
+}
+
+.modal-footer__button:hover {
+  border: none;
+  color: #fff;
+  background-color: #ff6b01;
+}
+
+.modal-footer__button_red {
+  border: 2px solid #ff001b;
+}
+
+.modal-footer__button_red:hover {
+  background-color: #ff001b;
+}
+
+.modal-footer__button_green {
+  border: 2px solid #14fc4e;
+}
+
+.modal-footer__button_green:hover {
+  background-color: #14fc4e;
+}
+
+.modal-footer__buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media screen and (min-width: 768px) {
+  .login-modal {
+    width: 400px;
+  }
+}
+@media screen and (min-width: 1280px) {
+  .login-modal {
+    width: 600px;
+  }
+}
 .empty-page {
   width: 100%;
   height: 100%;

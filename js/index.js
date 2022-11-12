@@ -9,6 +9,7 @@ const headerLibraryPage = document.querySelector('.header__library_wrapper');
 const headerWatchedButton = document.querySelector('.header__watched_button');
 const headerQueueButton = document.querySelector('.header__queue_button');
 const profile = document.querySelector('.your-profile');
+const profileText = document.querySelector('.your-profile__text');
 const loginButton = document.querySelector('.login-button');
 
 // Переменные для списков карточек популярных/просмотренных/запланированных фильмов и списка элементов пагинации
@@ -23,27 +24,367 @@ const searchForm = document.querySelector('.header__form');
 // Модальное окно при нажатии на постер фильма
 const modal = document.querySelector('.backdrop');
 
+// Модалка авторизации
+const loginModal = document.querySelector('[login-data-modal]');
+const modalTitle = document.querySelector('.modal__title_auth');
+const loginForm = document.querySelector('.login-form');
+const userNameInput = document.querySelector('.login-lable_name');
+const userSignin = document.querySelector('.modal-footer__button_orange');
+const userLogin = document.querySelector('.modal-footer__button_green');
+const cancleButton = document.querySelector('.modal-footer__button_red');
+
 // Глобальные переменные для хранения значения инпута/списка всех жанров из API/текущей страници для пагинации/доступного кол-ва страниц
 let inputValue = '';
 let genres = null;
 let page = 1;
 let totalFoundPages = null;
 let size = null;
-
-let filmsInWatched = [];
-if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
-  filmsInWatched = JSON.parse(localStorage.getItem('watched'));
-}
+let authToken = null;
 
 // Массивы для хранение данных о просмотренных и запланированных фильмах
 // При загрузке страницы заполняються данными из локального хранилища, если оно не пустое
 let watchedFilms = [];
-if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
-  watchedFilms = JSON.parse(localStorage.getItem('watched'));
-}
+
+// if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+//   watchedFilms = JSON.parse(localStorage.getItem('watched'));
+// }
 let queueFilms = [];
-if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
-  queueFilms = JSON.parse(localStorage.getItem('queue'));
+
+// if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+//   queueFilms = JSON.parse(localStorage.getItem('queue'));
+// }
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyByGY0m4xXgosXbFT2k9ieaGqeN8d2Kra0',
+  authDomain: 'filmoteka-e3ad4.firebaseapp.com',
+  databaseURL: 'https://filmoteka-e3ad4-default-rtdb.firebaseio.com',
+  projectId: 'filmoteka-e3ad4',
+  storageBucket: 'filmoteka-e3ad4.appspot.com',
+  messagingSenderId: '323992097218',
+  appId: '1:323992097218:web:05788e4ecaab4ab3a7c65b',
+  measurementId: 'G-LKM0Z8JDG6',
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const database = firebase.database();
+
+loginButton.addEventListener('click', openLoginModal);
+
+function openLoginModal() {
+  loginModal.classList.remove('is-hidden');
+
+  window.removeEventListener('keydown', onEscClose);
+  window.addEventListener('keydown', onEscLoginClose);
+}
+
+function onEscLoginClose(event) {
+  if (event.key === 'Escape') {
+    loginModalClose();
+  }
+}
+
+loginModal.addEventListener('click', event => {
+  if (event.target.classList.contains('backdrop')) {
+    loginModalClose();
+  }
+});
+
+profile.addEventListener('click', event => {
+  if (event.target.classList.contains('your-profile__exit')) {
+    profile.classList.add('d-none');
+    loginButton.classList.remove('d-none');
+    onLogoClick(event);
+  }
+});
+
+function checkAuth() {
+  if (profile.classList.contains('d-none')) {
+    return false;
+  }
+  return true;
+}
+
+cancleButton.addEventListener('click', loginModalClose);
+
+function loginModalClose() {
+  loginModal.classList.add('is-hidden');
+  window.removeEventListener('keydown', onEscLoginClose);
+
+  // Что бы при закрытии не мелькала модалка с регистрацией
+  setTimeout(() => {
+    userNameInput.style.display = 'flex';
+    modalTitle.textContent = 'Authorization';
+    userSignin.style.display = 'block';
+    userLogin.classList.remove('activeLoginForm');
+    loginForm.reset();
+  }, 500);
+}
+
+userLogin.addEventListener('click', onLoginButtonClick);
+
+function onLoginButtonClick() {
+  if (userLogin.classList.contains('activeLoginForm')) {
+    loginForm.addEventListener('submit', signIn);
+    return;
+  }
+
+  userLogin.type = 'submit';
+  loginForm.reset();
+  userNameInput.style.display = 'none';
+  modalTitle.textContent = 'Sign-in';
+  userSignin.style.display = 'none';
+  userLogin.classList.add('activeLoginForm');
+}
+
+function signIn(event) {
+  const userEmail = event.target.elements.email.value.trim();
+  const userPassword = event.target.elements.password.value.trim();
+  if (userEmail !== '' && userPassword !== '') {
+    console.log(userEmail);
+    console.log(userPassword);
+
+    authWithEmailAndPassword(userEmail, userPassword)
+      .then(data => {
+        authToken = data.idToken;
+        if (getWatchedFilmsFromDb(authToken) === 'No token') {
+          alert('Incorrect email or password');
+          event.target.elements.password.value = '';
+          event.target.elements.email.focus();
+          return;
+        }
+
+        if (getQueueFilmsFromDb(authToken) === 'No token') {
+          alert('Incorrect email or password');
+          event.target.elements.password.value = '';
+          event.target.elements.email.focus();
+          return;
+        }
+
+        // console.log(data);
+
+        getWatchedFilmsFromDb(authToken);
+        getQueueFilmsFromDb(authToken);
+
+        // localStorage.setItem('watched', JSON.stringify(watchedFilms));
+        // localStorage.setItem('queue', JSON.stringify(queueFilms));
+
+        loginModalClose();
+
+        profile.classList.remove('d-none');
+        loginButton.classList.add('d-none');
+        loginForm.removeEventListener('submit', signIn);
+
+        getUsersDb(authToken)
+          .then(userData => {
+            const name = Object.values(userData).find(user => user.email === data.email);
+
+            profileText.textContent = name.name;
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
+}
+
+function getWatchedFilmsFromDb(token) {
+  if (!token) {
+    return 'No token';
+  }
+
+  createWatchedFilmsDb().then(data => {
+    const id = data.name;
+    fetch(`https://filmoteka-e3ad4-default-rtdb.firebaseio.com/watched.json?auth=${token}`)
+      .then(respone => respone.json())
+      .then(data => {
+        const arrValues = Object.values(data);
+        const lastFilms = arrValues[arrValues.length - 1];
+        if (!lastFilms) {
+          return;
+        }
+
+        watchedFilms = lastFilms;
+      });
+  });
+  // localStorage.setItem('watched', JSON.stringify(watchedFilms));
+
+  return watchedFilms;
+}
+
+function getQueueFilmsFromDb(token) {
+  if (!token) {
+    return 'No token';
+  }
+
+  createQueueFilmsDb().then(data => {
+    // console.log(data);
+    const id = data.name;
+    fetch(`https://filmoteka-e3ad4-default-rtdb.firebaseio.com/queue.json?auth=${token}`)
+      .then(respone => respone.json())
+      .then(data => {
+        const arrValues = Object.values(data);
+        const lastFilms = arrValues[arrValues.length - 1];
+        if (!lastFilms) {
+          return;
+        }
+
+        queueFilms = lastFilms;
+      });
+  });
+  // localStorage.setItem('queue', JSON.stringify(queueFilms));
+
+  return queueFilms;
+}
+
+async function authWithEmailAndPassword(email, password) {
+  const apiKey = 'AIzaSyByGY0m4xXgosXbFT2k9ieaGqeN8d2Kra0';
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        returnSecureToken: true,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  const data = response.json();
+  return data;
+}
+
+async function createUserWithEmailAndPassword(email, password) {
+  const apiKey = 'AIzaSyByGY0m4xXgosXbFT2k9ieaGqeN8d2Kra0';
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        email,
+        password,
+        returnSecureToken: true,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  const data = response.json();
+  return data;
+}
+
+loginForm.addEventListener('submit', userAuthorization);
+
+function userAuthorization(event) {
+  event.preventDefault();
+  const userName = event.target.elements.login.value.trim();
+  const userEmail = event.target.elements.email.value.trim();
+  const userPassword = event.target.elements.password.value.trim();
+  if (userName !== '' && userEmail !== '' && userPassword !== '') {
+    console.log(userName);
+    console.log(userEmail);
+    console.log(userPassword);
+
+    auth
+      .createUserWithEmailAndPassword(userEmail, userPassword)
+      .then(data => {
+        const user = auth.currentUser;
+        const databaseRef = database.ref();
+
+        const userData = {
+          email: userEmail,
+          password: userPassword,
+          name: userName,
+        };
+
+        databaseRef.child('users/' + user.uid).set(userData);
+
+        loginModalClose();
+        profileText.textContent = userName;
+
+        profile.classList.remove('d-none');
+        loginButton.classList.add('d-none');
+        event.target.reset();
+      })
+      .catch(err => {
+        console.log(err);
+        alert('The email address is already in use by another account');
+        event.target.elements.password.value = '';
+        event.target.elements.email.focus();
+      });
+  }
+}
+
+async function createWatchedFilmsDb() {
+  // getWatchedDb(authToken)
+  //   .then(data => {
+  //     watchedFilms = data;
+  //   })
+  //   .catch(err => {
+  //     console.log(err);
+  //   });
+
+  const resolve = await fetch('https://filmoteka-e3ad4-default-rtdb.firebaseio.com/watched.json', {
+    method: 'POST',
+    body: JSON.stringify(watchedFilms),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  const data = resolve.json();
+  return data;
+}
+
+async function createQueueFilmsDb() {
+  // getQueueDb(authToken)
+  //   .then(data => {
+  //     queueFilms = data;
+  //   })
+  //   .catch(err => {
+  //     console.log(err);
+  //   });
+
+  const resolve = await fetch('https://filmoteka-e3ad4-default-rtdb.firebaseio.com/queue.json', {
+    method: 'POST',
+    body: JSON.stringify(queueFilms),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  const data = resolve.json();
+  return data;
+}
+
+async function getUsersDb(token) {
+  const resolve = await fetch(
+    `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/users.json?auth=${token}`
+  );
+  const data = resolve.json();
+  return data;
+}
+
+async function getWatchedDb(token) {
+  const resolve = await fetch(
+    `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/watched.json?auth=${token}`
+  );
+  const data = resolve.json();
+  return data;
+}
+
+async function getQueueDb(token) {
+  const resolve = await fetch(
+    `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/queue.json?auth=${token}`
+  );
+  const data = resolve.json();
+  return data;
 }
 
 // Запрос на сервер за массивом всех доступных жанров фильмов
@@ -228,6 +569,7 @@ function onHomeButtonClick() {
 // Действия по нажатию на кнопку MY LIBRARY
 function onLibraryButtonClick() {
   if (!checkAuth()) {
+    openLoginModal();
     return;
   }
 
@@ -245,11 +587,7 @@ function onLibraryButtonClick() {
 
   page = 1;
 
-  if (
-    headerWatchedButton.classList.contains('active-header-button') &&
-    localStorage.getItem('watched') &&
-    localStorage.getItem('watched') !== '[]'
-  ) {
+  if (headerWatchedButton.classList.contains('active-header-button') && watchedFilms) {
     renderWatchedFilms(page);
     renderPagination(totalFoundPages, page);
   } else {
@@ -261,14 +599,11 @@ function onLibraryButtonClick() {
     `;
   }
 
-  if (
-    headerQueueButton.classList.contains('active-header-button') &&
-    localStorage.getItem('queue') &&
-    localStorage.getItem('queue') !== '[]'
-  ) {
+  if (headerQueueButton.classList.contains('active-header-button') && queueFilms) {
     watchedList.style.display = 'none';
     queueList.style.display = 'flex';
     renderQueueFilms(page);
+    renderPagination(totalFoundPages, page);
   } else if (headerQueueButton.classList.contains('active-header-button')) {
     watchedList.style.display = 'none';
     queueList.style.display = 'flex';
@@ -354,6 +689,7 @@ function openFilmsModal(event) {
         const watchedButton = document.querySelector('.modal__button-watched');
         const queueButton = document.querySelector('.modal__button-queue');
         watchedButton.addEventListener('click', () => {
+          console.log(watchedFilms);
           if (watchedFilms.find(film => film.id === data.id)) {
             toggleModal();
             headerErrorMessage.classList.remove('is-hidden');
@@ -367,8 +703,10 @@ function openFilmsModal(event) {
             queueFilms.forEach((film, index) => {
               if (film.id === data.id) {
                 queueFilms.splice(index, 1);
-                localStorage.setItem('queue', JSON.stringify(queueFilms));
-                if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+                createQueueFilmsDb();
+                // localStorage.setItem('queue', JSON.stringify(queueFilms));
+                // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+                if (queueFilms) {
                   renderQueueFilms(page);
                 } else {
                   paginationList.innerHTML = `
@@ -379,7 +717,7 @@ function openFilmsModal(event) {
                   `;
                   queueList.innerHTML = '';
                 }
-
+                /////////////////////////////
                 window.removeEventListener('keydown', onEscClose);
               }
             });
@@ -393,7 +731,9 @@ function openFilmsModal(event) {
             vote: data.vote_average,
           });
 
-          localStorage.setItem('watched', JSON.stringify(watchedFilms));
+          createWatchedFilmsDb();
+
+          // localStorage.setItem('watched', JSON.stringify(watchedFilms));
         });
 
         queueButton.addEventListener('click', () => {
@@ -406,12 +746,15 @@ function openFilmsModal(event) {
           }
           headerErrorMessage.classList.add('is-hidden');
 
+          console.log(watchedFilms);
           if (watchedFilms.find(film => film.id === data.id)) {
             watchedFilms.forEach((film, index) => {
               if (film.id === data.id) {
                 watchedFilms.splice(index, 1);
-                localStorage.setItem('watched', JSON.stringify(watchedFilms));
-                if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+                createWatchedFilmsDb();
+                // localStorage.setItem('watched', JSON.stringify(watchedFilms));
+                // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+                if (watchedFilms) {
                   renderWatchedFilms(page);
                 } else {
                   paginationList.innerHTML = `
@@ -435,7 +778,9 @@ function openFilmsModal(event) {
             date: data.release_date,
             vote: data.vote_average,
           });
-          localStorage.setItem('queue', JSON.stringify(queueFilms));
+
+          createQueueFilmsDb();
+          // localStorage.setItem('queue', JSON.stringify(queueFilms));
         });
       })
       .catch(err => {
@@ -445,7 +790,7 @@ function openFilmsModal(event) {
 }
 
 function renderWatchedFilms(index) {
-  const watchedFilms = JSON.parse(localStorage.getItem('watched'));
+  // const watchedFilms = JSON.parse(localStorage.getItem('watched'));
 
   const murkup = watchedFilms.map(film => {
     const genres = film.genres.map(genre => genre.name);
@@ -488,7 +833,7 @@ function renderWatchedFilms(index) {
 }
 
 function renderQueueFilms(index) {
-  const queueFilms = JSON.parse(localStorage.getItem('queue'));
+  // const queueFilms = JSON.parse(localStorage.getItem('queue'));
 
   const murkup = queueFilms.map(film => {
     const genres = film.genres.map(genre => genre.name);
@@ -574,7 +919,9 @@ function openLibraryModal(event) {
             vote: data.vote_average,
           });
 
-          localStorage.setItem('watched', JSON.stringify(watchedFilms));
+          createWatchedFilmsDb();
+
+          // localStorage.setItem('watched', JSON.stringify(watchedFilms));
           deleteQueueFilm(data);
         });
 
@@ -592,7 +939,9 @@ function openLibraryModal(event) {
             date: data.release_date,
             vote: data.vote_average,
           });
-          localStorage.setItem('queue', JSON.stringify(queueFilms));
+
+          createQueueFilmsDb();
+          // localStorage.setItem('queue', JSON.stringify(queueFilms));
           deleteWatchedFilm(data);
         });
 
@@ -617,8 +966,10 @@ function deleteQueueFilm(data) {
           page -= 1;
         }
         queueFilms.splice(index, 1);
-        localStorage.setItem('queue', JSON.stringify(queueFilms));
-        if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+        createQueueFilmsDb();
+        // localStorage.setItem('queue', JSON.stringify(queueFilms));
+        // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+        if (queueFilms) {
           renderQueueFilms(page);
         } else {
           paginationList.innerHTML = `
@@ -645,8 +996,10 @@ function deleteWatchedFilm(data) {
           page -= 1;
         }
         watchedFilms.splice(index, 1);
-        localStorage.setItem('watched', JSON.stringify(watchedFilms));
-        if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+        createWatchedFilmsDb();
+        // localStorage.setItem('watched', JSON.stringify(watchedFilms));
+        // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+        if (watchedFilms) {
           renderWatchedFilms(page);
         } else {
           paginationList.innerHTML = `
@@ -673,6 +1026,10 @@ function onEscClose(event) {
 }
 
 function toggleModal() {
+  if (!checkAuth()) {
+    openLoginModal();
+    return;
+  }
   modal.classList.toggle('is-hidden');
   if (modal.classList.contains('is-hidden')) {
     enableScroll();
@@ -872,7 +1229,8 @@ headerWatchedButton.addEventListener('click', () => {
     return;
   }
   page = 1;
-  if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+  // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
+  if (watchedFilms) {
     renderPagination(totalFoundPages, page);
     renderWatchedFilms(page);
   } else {
@@ -895,7 +1253,8 @@ headerQueueButton.addEventListener('click', () => {
     return;
   }
   page = 1;
-  if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+  // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
+  if (queueFilms) {
     renderPagination(totalFoundPages, page);
     renderQueueFilms(page);
   } else {
@@ -911,26 +1270,6 @@ headerQueueButton.addEventListener('click', () => {
   watchedList.style.display = 'none';
   queueList.style.display = 'flex';
 });
-
-loginButton.addEventListener('click', () => {
-  profile.classList.remove('d-none');
-  loginButton.classList.add('d-none');
-});
-
-profile.addEventListener('click', event => {
-  if (event.target.classList.contains('your-profile__exit')) {
-    profile.classList.add('d-none');
-    loginButton.classList.remove('d-none');
-    onLogoClick(event);
-  }
-});
-
-function checkAuth() {
-  if (profile.classList.contains('d-none')) {
-    return false;
-  }
-  return true;
-}
 
 function disableScroll() {
   const widthScroll = window.innerWidth - document.body.offsetWidth;
