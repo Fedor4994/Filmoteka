@@ -11,6 +11,40 @@
   cursor: pointer;
 }
 
+.poster-wrapper {
+  position: relative;
+}
+
+.youtube-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  // top: 50%;
+  // left: 50%;
+  // transform: translate(-50%, -50%);
+  display: block;
+  width: 60px;
+  height: 60px;
+  background-color: none;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url(../img/youtube-logo.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+// .youtube-btn:hover {
+//   background-image: url(../img/youtube-logo.png);
+// }
+
+// .modal__img:hover + .youtube-btn {
+//   background-image: url(../img/youtube-logo.png);
+// }
+
 .modal__img {
   background-image: url(../img/no-image.svg);
   background-repeat: no-repeat;

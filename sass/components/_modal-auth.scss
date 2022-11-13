@@ -13,6 +13,22 @@
   padding-right: 20px;
 }
 
+.trailer-modal {
+  width: 640px;
+  height: 360px;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+}
+
+.youtube-video {
+  width: 100%;
+  height: 100%;
+}
+
 .modal__title_auth {
   font-weight: 500;
   font-size: 24px;
@@ -125,6 +141,11 @@
     width: 400px;
   }
 
+  .trailer-modal {
+    width: 640px;
+    height: 360px;
+  }
+
   .fieldset {
     max-width: 1200px;
   }
@@ -133,6 +154,11 @@
 @media screen and(min-width: 1280px) {
   .login-modal {
     width: 600px;
+  }
+
+  .trailer-modal {
+    width: 1280px;
+    height: 720px;
   }
 }
 

@@ -689,49 +689,128 @@ async function getMovieInfo(id) {
   return data;
 }
 
+async function getMovieTrailer(id) {
+  const resolve = await fetch(
+    `https://api.themoviedb.org/3/movie/${id}/videos?api_key=abf5df7d75a67bd02b3b1e4ead1fc14d`
+  );
+  const data = resolve.json();
+  return data;
+}
+
 function renderModal(info) {
+  let trailerId = null;
+
   const genres = info.genres.map(genre => genre.name);
   window.addEventListener('keydown', onEscClose);
   const murkup = `
    <div class="modal">
-        <button data-modal-close type="button" class="modal__close">
-          <img src="./img/close.svg" alt="close" class="modal__close_icon" />
-        </button>
-        <img src="https://image.tmdb.org/t/p/w500${
-          info.poster_path
-        }" alt="movie poster" class="modal__img" />
-        <div class="modal__body">
-          <h3 class="modal__title">${info.title.toUpperCase()}</h3>
-          <div class="modal__stats">
-            <div class="modal__stats_left">
-              <span class="modal__text">Vote / Votes</span>
-              <span class="modal__text">Popularity</span>
-              <span class="modal__text">Original Title</span>
-              <span class="modal__text">Genre</span>
-            </div>
-            <div class="modal__stats_right">
-              <p class="modal__votes_info">
-                <span class="modal__vote">${info.vote_average.toFixed(
-                  2
-                )}</span> <span class="modal__text">/</span>
-                <span class="modal__votes">${info.vote_count}</span>
-              </p>
-              <span class="modal__text_bold">${info.popularity.toFixed(0)}</span>
-              <span class="modal__text_bold">${info.original_title.toUpperCase()}</span>
-              <span class="modal__text_bold">${genres.join(', ')}</span>
-            </div>
+      <button data-modal-close type="button" class="modal__close">
+        <img src="./img/close.svg" alt="close" class="modal__close_icon" />
+      </button>
+      <div class="poster-wrapper">
+        <img
+          src="https://image.tmdb.org/t/p/w500${info.poster_path}"
+          alt="movie poster"
+          class="modal__img"
+        />
+        <a
+    class="youtube-btn link tube"
+    href="https://www.youtube.com/embed/${trailerId}"
+    data-video="${trailerId}"
+  ></a>
+      </div>
+
+      <div class="modal__body">
+        <h3 class="modal__title">${info.title.toUpperCase()}</h3>
+        <div class="modal__stats">
+          <div class="modal__stats_left">
+            <span class="modal__text">Vote / Votes</span>
+            <span class="modal__text">Popularity</span>
+            <span class="modal__text">Original Title</span>
+            <span class="modal__text">Genre</span>
           </div>
-          <span class="modal__about">ABOUT</span>
-          <p class="modal__desription">
-            ${info.overview}
-          </p>
-          <div class="modal__buttons">
-            <button type="button" class="modal__button-watched">ADD TO WATCHED</button>
-            <button type="button" class="modal__button-queue">ADD TO QUEUE</button>
+          <div class="modal__stats_right">
+            <p class="modal__votes_info">
+              <span class="modal__vote">${info.vote_average.toFixed(2)}</span>
+              <span class="modal__text">/</span>
+              <span class="modal__votes">${info.vote_count}</span>
+            </p>
+            <span class="modal__text_bold">${info.popularity.toFixed(0)}</span>
+            <span class="modal__text_bold">${info.original_title.toUpperCase()}</span>
+            <span class="modal__text_bold">${genres.join(', ')}</span>
           </div>
         </div>
+        <span class="modal__about">ABOUT</span>
+        <p class="modal__desription">${info.overview}</p>
+        <div class="modal__buttons">
+          <button type="button" class="modal__button-watched">ADD TO WATCHED</button>
+          <button type="button" class="modal__button-queue">ADD TO QUEUE</button>
+        </div>
       </div>
+    </div>
+
+    <div class="backdrop is-hidden" trailer-data-modal>
+      <div class="trailer-modal">
+        <div class="youtube-video" id="player"></div>
+      </div>
+    </div>
   `;
+
+  getMovieTrailer(Number(info.id))
+    .then(data => {
+      trailerId = data.results.find(film => film.name.includes('Trailer'))?.key;
+      console.log(trailerId);
+
+      const youtubeLink = document.querySelector('.youtube-btn');
+      youtubeLink.href = `https://www.youtube.com/embed/${trailerId}`;
+      youtubeLink.dataset.video = trailerId;
+
+      var tag = document.createElement('script');
+
+      tag.src = 'https://www.youtube.com/iframe_api';
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      const videoModal = document.querySelector('[trailer-data-modal]');
+      var player;
+
+      youtubeLink.addEventListener('click', event => {
+        event.preventDefault();
+        const id = event.target.dataset.video;
+        videoModal.classList.remove('is-hidden');
+
+        if (player) {
+          if (player.playerInfo.videoData.video_id == id) {
+            player.playVideo();
+          } else {
+            player.loadVideoById({ videoId: id });
+            console.log(123);
+          }
+          // } else {
+        } else {
+          player = new YT.Player('player', {
+            videoId: id,
+            events: {
+              onReady: onPlayerReady,
+            },
+          });
+        }
+      });
+
+      videoModal.addEventListener('click', event => {
+        if (event.target.classList.contains('backdrop')) {
+          videoModal.classList.add('is-hidden');
+          player.pauseVideo();
+          player.destroy();
+        }
+      });
+
+      function onPlayerReady(event) {
+        event.target.playVideo();
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
 
   modal.innerHTML = murkup;
 
