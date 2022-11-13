@@ -40,6 +40,10 @@ let page = 1;
 let totalFoundPages = null;
 let size = null;
 let authToken = null;
+let globalUserId = null;
+if (localStorage.getItem('userId')) {
+  globalUserId = localStorage.getItem('userId');
+}
 
 if (localStorage.getItem('token')) {
   authToken = localStorage.getItem('token');
@@ -59,8 +63,8 @@ if (localStorage.getItem('auth') === 'true') {
   profile.classList.remove('d-none');
   loginButton.classList.add('d-none');
   localStorage.setItem('auth', true);
-  getWatchedFilmsFromDb(authToken);
-  getQueueFilmsFromDb(authToken);
+  getWatchedFilmsFromDb(authToken, globalUserId);
+  getQueueFilmsFromDb(authToken, globalUserId);
 
   loginForm.reset();
 }
@@ -112,6 +116,10 @@ profile.addEventListener('click', event => {
     loginButton.classList.remove('d-none');
     localStorage.setItem('auth', false);
     onLogoClick(event);
+    localStorage.removeItem('userId');
+    globalUserId = null;
+    watchedFilms = [];
+    queueFilms = [];
     // createQueueFilmsDb();
   }
 });
@@ -166,24 +174,28 @@ function signIn(event) {
       .then(data => {
         localStorage.setItem('token', data.idToken);
         authToken = data.idToken;
-        if (getWatchedFilmsFromDb(authToken) === 'No token') {
+        let userId = data.localId;
+
+        localStorage.setItem('userId', userId);
+        globalUserId = userId;
+
+        if (getWatchedFilmsFromDb(authToken, userId) === 'No token') {
           alert('Incorrect email or password');
           event.target.elements.password.value = '';
           event.target.elements.email.focus();
           return;
         }
 
-        if (getQueueFilmsFromDb(authToken) === 'No token') {
+        if (getQueueFilmsFromDb(authToken, userId) === 'No token') {
           alert('Incorrect email or password');
           event.target.elements.password.value = '';
           event.target.elements.email.focus();
           return;
         }
 
-        // console.log(data);
+        getWatchedFilmsFromDb(authToken, userId);
 
-        getWatchedFilmsFromDb(authToken);
-        getQueueFilmsFromDb(authToken);
+        getQueueFilmsFromDb(authToken, userId);
 
         // localStorage.setItem('watched', JSON.stringify(watchedFilms));
         // localStorage.setItem('queue', JSON.stringify(queueFilms));
@@ -198,12 +210,15 @@ function signIn(event) {
         getUsersDb(authToken)
           .then(userData => {
             const name = Object.values(userData).find(user => user.email === data.email);
-
+            console.log(userData);
             profileText.textContent = name.name;
             localStorage.setItem('globalUserName', name.name);
+            location.reload();
           })
+
           .catch(err => {
             console.log(err);
+            profileText.textContent = 'User';
           });
       })
       .catch(err => {
@@ -212,14 +227,17 @@ function signIn(event) {
   }
 }
 
-function getWatchedFilmsFromDb(token) {
+function getWatchedFilmsFromDb(token, userId) {
   if (!token) {
     return 'No token';
   }
 
-  createWatchedFilmsDb().then(data => {
+  createWatchedFilmsDb(userId).then(data => {
     const id = data.name;
-    fetch(`https://filmoteka-e3ad4-default-rtdb.firebaseio.com/watched.json?auth=${token}`)
+
+    fetch(
+      `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/users/${userId}/watched.json?auth=${token}`
+    )
       .then(respone => respone.json())
       .then(data => {
         const arrValues = Object.values(data);
@@ -236,15 +254,17 @@ function getWatchedFilmsFromDb(token) {
   return watchedFilms;
 }
 
-function getQueueFilmsFromDb(token) {
+function getQueueFilmsFromDb(token, userId) {
   if (!token) {
     return 'No token';
   }
 
-  createQueueFilmsDb().then(data => {
+  createQueueFilmsDb(userId).then(data => {
     // console.log(data);
     const id = data.name;
-    fetch(`https://filmoteka-e3ad4-default-rtdb.firebaseio.com/queue.json?auth=${token}`)
+    fetch(
+      `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/users/${userId}/queue.json?auth=${token}`
+    )
       .then(respone => respone.json())
       .then(data => {
         const arrValues = Object.values(data);
@@ -317,18 +337,23 @@ function userAuthorization(event) {
     auth
       .createUserWithEmailAndPassword(userEmail, userPassword)
       .then(data => {
+        console.log(data);
         const user = auth.currentUser;
         const databaseRef = database.ref();
-
         localStorage.setItem('token', user.Aa);
         authToken = localStorage.getItem('token');
-        getWatchedFilmsFromDb(authToken);
-        getQueueFilmsFromDb(authToken);
+        globalUserId = user.uid;
+        localStorage.setItem('userId', user.uid);
+        watchedFilms = [];
+        queueFilms = [];
+        // getWatchedFilmsFromDb(authToken, globalUserId);
+        // getQueueFilmsFromDb(authToken);
 
         const userData = {
           email: userEmail,
           password: userPassword,
           name: userName,
+          uid: user.uid,
         };
 
         databaseRef.child('users/' + user.uid).set(userData);
@@ -339,8 +364,8 @@ function userAuthorization(event) {
         profile.classList.remove('d-none');
         loginButton.classList.add('d-none');
         localStorage.setItem('auth', true);
-
         event.target.reset();
+        // location.reload();
       })
       .catch(err => {
         console.log(err);
@@ -351,27 +376,31 @@ function userAuthorization(event) {
   }
 }
 
-async function createWatchedFilmsDb() {
-  // getWatchedDb(authToken)
+async function createWatchedFilmsDb(userId) {
+  // getWatchedDb(authToken, userId)
   //   .then(data => {
-  //     watchedFilms = data;
+  //     arr = Object.values(data);
+
   //   })
   //   .catch(err => {
   //     console.log(err);
   //   });
 
-  const resolve = await fetch('https://filmoteka-e3ad4-default-rtdb.firebaseio.com/watched.json', {
-    method: 'POST',
-    body: JSON.stringify(watchedFilms),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const resolve = await fetch(
+    `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/users/${userId}/watched.json`,
+    {
+      method: 'POST',
+      body: JSON.stringify(watchedFilms),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
   const data = resolve.json();
   return data;
 }
 
-async function createQueueFilmsDb() {
+async function createQueueFilmsDb(userId) {
   // getQueueDb(authToken)
   //   .then(data => {
   //     queueFilms = data;
@@ -380,13 +409,16 @@ async function createQueueFilmsDb() {
   //     console.log(err);
   //   });
 
-  const resolve = await fetch('https://filmoteka-e3ad4-default-rtdb.firebaseio.com/queue.json', {
-    method: 'POST',
-    body: JSON.stringify(queueFilms),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const resolve = await fetch(
+    `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/users/${userId}/queue.json`,
+    {
+      method: 'POST',
+      body: JSON.stringify(queueFilms),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
   const data = resolve.json();
   return data;
 }
@@ -403,6 +435,9 @@ async function getWatchedDb(token) {
   const resolve = await fetch(
     `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/watched.json?auth=${token}`
   );
+  // const resolve = await fetch(
+  //   `https://filmoteka-e3ad4-default-rtdb.firebaseio.com/users/${userId}/watched.json?auth=${token}`
+  // );
   const data = resolve.json();
   return data;
 }
@@ -735,7 +770,7 @@ function openFilmsModal(event) {
             queueFilms.forEach((film, index) => {
               if (film.id === data.id) {
                 queueFilms.splice(index, 1);
-                createQueueFilmsDb();
+                createQueueFilmsDb(globalUserId);
                 // localStorage.setItem('queue', JSON.stringify(queueFilms));
                 // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
                 if (queueFilms.length !== 0) {
@@ -763,7 +798,7 @@ function openFilmsModal(event) {
             vote: data.vote_average,
           });
 
-          createWatchedFilmsDb();
+          createWatchedFilmsDb(globalUserId);
 
           // localStorage.setItem('watched', JSON.stringify(watchedFilms));
         });
@@ -787,7 +822,7 @@ function openFilmsModal(event) {
             watchedFilms.forEach((film, index) => {
               if (film.id === data.id) {
                 watchedFilms.splice(index, 1);
-                createWatchedFilmsDb();
+                createWatchedFilmsDb(globalUserId);
                 // localStorage.setItem('watched', JSON.stringify(watchedFilms));
                 // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
                 if (watchedFilms.length !== 0) {
@@ -815,7 +850,7 @@ function openFilmsModal(event) {
             vote: data.vote_average,
           });
 
-          createQueueFilmsDb();
+          createQueueFilmsDb(globalUserId);
           // localStorage.setItem('queue', JSON.stringify(queueFilms));
         });
       })
@@ -872,7 +907,7 @@ function renderQueueFilms(index) {
   // const queueFilms = JSON.parse(localStorage.getItem('queue'));
 
   const murkup = queueFilms.map(film => {
-    const genres = film.genres.map(genre => genre.name);
+    const genres = film?.genres?.map(genre => genre.name);
     return `
     <li class="library__item">
               <img src="https://image.tmdb.org/t/p/w500${
@@ -881,7 +916,7 @@ function renderQueueFilms(index) {
               <div class="library__descr_wrapper">
                 <h3 class="library__title">${film.title.toUpperCase()}</h3>
                 <p class="library__description">
-                  ${genres.join(', ')} | ${film?.date?.slice(
+                  ${genres?.join(', ')} | ${film?.date?.slice(
       0,
       4
     )} <span class="library__vote">${film.vote.toFixed(1)}</span>
@@ -955,7 +990,7 @@ function openLibraryModal(event) {
             vote: data.vote_average,
           });
 
-          createWatchedFilmsDb();
+          createWatchedFilmsDb(globalUserId);
 
           // localStorage.setItem('watched', JSON.stringify(watchedFilms));
           deleteQueueFilm(data);
@@ -976,7 +1011,7 @@ function openLibraryModal(event) {
             vote: data.vote_average,
           });
 
-          createQueueFilmsDb();
+          createQueueFilmsDb(globalUserId);
           // localStorage.setItem('queue', JSON.stringify(queueFilms));
           deleteWatchedFilm(data);
         });
@@ -1002,7 +1037,7 @@ function deleteQueueFilm(data) {
           page -= 1;
         }
         queueFilms.splice(index, 1);
-        createQueueFilmsDb();
+        createQueueFilmsDb(globalUserId);
         // localStorage.setItem('queue', JSON.stringify(queueFilms));
         // if (localStorage.getItem('queue') && localStorage.getItem('queue') !== '[]') {
         if (queueFilms.length !== 0) {
@@ -1032,7 +1067,7 @@ function deleteWatchedFilm(data) {
           page -= 1;
         }
         watchedFilms.splice(index, 1);
-        createWatchedFilmsDb();
+        createWatchedFilmsDb(globalUserId);
         // localStorage.setItem('watched', JSON.stringify(watchedFilms));
         // if (localStorage.getItem('watched') && localStorage.getItem('watched') !== '[]') {
         if (watchedFilms.length !== 0) {
