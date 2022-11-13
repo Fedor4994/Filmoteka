@@ -796,11 +796,22 @@ function renderModal(info) {
         }
       });
 
+      window.addEventListener('keydown', onEscVideoClose);
+      function onEscVideoClose(event) {
+        if (event.key === 'Escape') {
+          videoModal.classList.add('is-hidden');
+          player.pauseVideo();
+          player.destroy();
+          window.removeEventListener('keydown', onEscVideoClose);
+        }
+      }
+
       videoModal.addEventListener('click', event => {
         if (event.target.classList.contains('backdrop')) {
           videoModal.classList.add('is-hidden');
           player.pauseVideo();
           player.destroy();
+          window.removeEventListener('keydown', onEscVideoClose);
         }
       });
 
