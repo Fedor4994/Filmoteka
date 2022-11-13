@@ -346,6 +346,8 @@ function userAuthorization(event) {
         localStorage.setItem('userId', user.uid);
         watchedFilms = [];
         queueFilms = [];
+        watchedList.innerHTML = '';
+        queueList.innerHTML = '';
         // getWatchedFilmsFromDb(authToken, globalUserId);
         // getQueueFilmsFromDb(authToken);
 
