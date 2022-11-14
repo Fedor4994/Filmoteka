@@ -167,9 +167,6 @@ function signIn(event) {
   const userEmail = event.target.elements.email.value.trim();
   const userPassword = event.target.elements.password.value.trim();
   if (userEmail !== '' && userPassword !== '') {
-    console.log(userEmail);
-    console.log(userPassword);
-
     authWithEmailAndPassword(userEmail, userPassword)
       .then(data => {
         localStorage.setItem('token', data.idToken);
@@ -210,7 +207,7 @@ function signIn(event) {
         getUsersDb(authToken)
           .then(userData => {
             const name = Object.values(userData).find(user => user.email === data.email);
-            console.log(userData);
+
             profileText.textContent = name.name;
             localStorage.setItem('globalUserName', name.name);
             location.reload();
@@ -329,15 +326,11 @@ function userAuthorization(event) {
   const userEmail = event.target.elements.email.value.trim();
   const userPassword = event.target.elements.password.value.trim();
   if (userName !== '' && userEmail !== '' && userPassword !== '') {
-    console.log(userName);
     localStorage.setItem('globalUserName', userName);
-    console.log(userEmail);
-    console.log(userPassword);
 
     auth
       .createUserWithEmailAndPassword(userEmail, userPassword)
       .then(data => {
-        console.log(data);
         const user = auth.currentUser;
         const databaseRef = database.ref();
         localStorage.setItem('token', user.Aa);
@@ -759,7 +752,6 @@ function renderModal(info) {
   getMovieTrailer(Number(info.id))
     .then(data => {
       trailerId = data.results.find(film => film.name.includes('Trailer'))?.key;
-      console.log(trailerId);
 
       const youtubeLink = document.querySelector('.youtube-btn');
       youtubeLink.href = `https://www.youtube.com/embed/${trailerId}`;
@@ -783,7 +775,6 @@ function renderModal(info) {
             player.playVideo();
           } else {
             player.loadVideoById({ videoId: id });
-            console.log(123);
           }
           // } else {
         } else {
