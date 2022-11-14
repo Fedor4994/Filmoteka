@@ -327,7 +327,10 @@ function userAuthorization(event) {
   const userPassword = event.target.elements.password.value.trim();
   if (userName !== '' && userEmail !== '' && userPassword !== '') {
     localStorage.setItem('globalUserName', userName);
-
+    if (userPassword.length < 6) {
+      alert('Password is too short');
+      return;
+    }
     auth
       .createUserWithEmailAndPassword(userEmail, userPassword)
       .then(data => {
